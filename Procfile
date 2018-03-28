@@ -1,1 +1,1 @@
-web: java $JAVA_OPTS -jar build/libs/panicserver.jar
+web: java $JAVA_OPTS -jar out/artifacts/panicserver_jar/panicserver.jar
