@@ -1,0 +1,2 @@
+# panicserver
+Server for panic
