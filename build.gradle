@@ -12,3 +12,7 @@ jar{
 }
 
 task stage(dependsOn: jar)
+
+dependencies{
+    compileJava "javax.servlet"
+}
