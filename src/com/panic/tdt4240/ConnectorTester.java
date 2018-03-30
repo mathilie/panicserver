@@ -10,8 +10,8 @@ import com.sun.net.httpserver.HttpServer;
 public class ConnectorTester {
 
 
-    public void create() throws Exception {
-        HttpServer server = HttpServer.create(new InetSocketAddress(80), 0);
+    public void create(String port) throws Exception {
+        HttpServer server = HttpServer.create(new InetSocketAddress(Integer.parseInt(port)), 0);
         server.createContext("/test", new MyHandler());
         server.setExecutor(null); // creates a default executor
         server.start();

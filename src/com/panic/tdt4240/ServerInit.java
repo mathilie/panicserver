@@ -7,7 +7,7 @@ package com.panic.tdt4240;
 public class ServerInit {
     public static void main(String args[]){
         try {
-            new ConnectorTester().create();
+            new ConnectorTester().create(args[0]);
             System.out.println("server setup done");
         } catch (Exception e){
             e.printStackTrace();
