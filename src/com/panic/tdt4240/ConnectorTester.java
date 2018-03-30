@@ -20,6 +20,7 @@ public class ConnectorTester {
     class MyHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange t) throws IOException {
+            System.out.println("Server entered handle method");
             String response = "This is the response";
             t.sendResponseHeaders(200, response.length());
             OutputStream os = t.getResponseBody();
