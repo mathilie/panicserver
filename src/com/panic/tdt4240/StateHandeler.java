@@ -14,6 +14,7 @@ public class StateHandeler implements TurnListener {
     private char gameState;
 
 
+
     @Override
     public void turnFinished() {
 

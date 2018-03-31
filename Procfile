@@ -1,0 +1,1 @@
+web: java $JAVA_OPTS -jar out/artifacts/panicserver_jar/panicserver.jar $PORT
