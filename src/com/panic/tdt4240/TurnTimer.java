@@ -53,10 +53,11 @@ public class TurnTimer implements Runnable {
         running = false;
     }
 
+    public void setListener(TurnListener tl){this.listener = tl; }
 
     @Override
     public void run() {
-        long oldTime = System.currentTimeMillis();
+        long oldTime;
         long currentTime = System.currentTimeMillis();
         while (running) {
             oldTime = currentTime;

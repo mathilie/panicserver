@@ -6,11 +6,13 @@ package com.panic.tdt4240;
 
 public class ServerInit {
     public static void main(String args[]){
-        System.out.println("hello");
-        /*try {
-            Thread.sleep(10000);
-        }catch (Exception e){}*/
-        System.out.println("World");
+        try {
+            new ConnectorTester().create(args[0]);
+            System.out.println("server setup done");
+        } catch (Exception e){
+            e.printStackTrace();
+            System.out.println("server setup failed");
+        }
     }
 
 }
