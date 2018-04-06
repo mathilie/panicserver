@@ -10,7 +10,7 @@ public class ServerInit {
                 ServerSocket ss = new ServerSocket(Integer.parseInt(args[0]));
                 Socket client = ss.accept();
                 System.out.println("Connection "+client.toString()+" accepted");
-                new SorterThread(client).run();
+                new Thread(new SorterThread(client)).start();
             } catch (Exception e) {
                 e.printStackTrace();
             }
