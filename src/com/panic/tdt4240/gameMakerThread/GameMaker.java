@@ -1,6 +1,9 @@
 package com.panic.tdt4240.gameMakerThread;
 
 
+import com.panic.tdt4240.GameInstance;
+import com.panic.tdt4240.SorterThread;
+
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**

@@ -4,12 +4,12 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 public class SorterThread implements Runnable {
-    static ArrayList<Integer> gameInstanceList;
+    public static ArrayList<GameInstance> gameInstanceList;
     Socket client;
 
     public SorterThread(Socket client){
         this.client = client;
-        if(gameInstanceList==null) gameInstanceList = new ArrayList<Integer>();
+        if(gameInstanceList==null) gameInstanceList = new ArrayList<GameInstance>();
     }
 
     @Override
