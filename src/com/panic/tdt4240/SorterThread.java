@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 public class SorterThread implements Runnable {
+
     static ArrayList<GameInstance> gameInstanceList;
     private Socket client;
     private Scanner in;
