@@ -1,4 +1,4 @@
-package com.panic.tdt4240;
+package com.panic.tdt4240.old;
 import sun.net.httpserver.*;
 import java.io.IOException;
 import java.io.OutputStream;
