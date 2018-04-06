@@ -1,5 +1,6 @@
 package com.panic.tdt4240;
 
+
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -28,6 +29,7 @@ public class GameInstance implements Runnable {
     public ArrayList<Socket> getClients() {
         return clients;
     }
+
 
     @Override
     public void run() {
