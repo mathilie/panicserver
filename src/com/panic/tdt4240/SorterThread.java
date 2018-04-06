@@ -41,6 +41,7 @@ public class SorterThread implements Runnable {
                         break;
                     case "TEST":
                         System.out.println("Client connected and message recieved");
+                        return;
                     default:
                         close();
                         return;
