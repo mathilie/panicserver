@@ -39,7 +39,8 @@ public class SorterThread implements Runnable {
                     case "CREATE":
                         createGame();
                         break;
-
+                    case "TEST":
+                        System.out.println("Client connected and message recieved");
                     default:
                         close();
                         return;
