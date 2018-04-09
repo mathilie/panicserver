@@ -48,8 +48,8 @@ public class TestStringHandler {
         stringHandler.addToMoves(testList2);
 
         String result = stringHandler.createCardString(null);
-        assertEquals("Test4&TestPerson4&TestAsteroid4&4//Test3&TestPerson3&TestAsteroid3&3//Test2&TestPerson2&TestAsteroid2&2//Test1&TestPerson1&TestAsteroid1&1//Test7&TestPerson7&TestAsteroid7&2//" +
-                "Test8&TestPerson8&TestAsteroid8&2//Test6&TestPerson6&TestAsteroid6&2//Test5&TestPerson5&TestAsteroid5&1//TURNEND//", result);
+        assertEquals("Test4&TestPerson4&TestAsteroid4&49726//Test3&TestPerson3&TestAsteroid3&47556//Test2&TestPerson2&TestAsteroid2&10920//Test1&TestPerson1&TestAsteroid1&45031//Test7&TestPerson7&TestAsteroid7&68365//" +
+                "Test8&TestPerson8&TestAsteroid8&26511//Test6&TestPerson6&TestAsteroid6&33423//Test5&TestPerson5&TestAsteroid5&52989//TURNEND//", result);
     }
     @Test
     public void ShouldAddToString() {
@@ -72,8 +72,8 @@ public class TestStringHandler {
         testList.add(s8);
         stringHandler.addToMoves(testList);
         String result = stringHandler.createCardString(startString);
-        assertEquals("Test4&TestPerson4&TestAsteroid4&4//Test3&TestPerson3&TestAsteroid3&3//Test2&TestPerson2&TestAsteroid2&2//Test1&TestPerson1&TestAsteroid1&1//Test7&TestPerson7&TestAsteroid7&2//" +
-                "Test8&TestPerson8&TestAsteroid8&2//Test6&TestPerson6&TestAsteroid6&2//Test5&TestPerson5&TestAsteroid5&1//TURNEND//", result);
+        assertEquals("Test4&TestPerson4&TestAsteroid4&4//Test3&TestPerson3&TestAsteroid3&3//Test2&TestPerson2&TestAsteroid2&2//Test1&TestPerson1&TestAsteroid1&1//Test8&TestPerson8&TestAsteroid8&10920//" +
+                "Test6&TestPerson6&TestAsteroid6&49726//Test7&TestPerson7&TestAsteroid7&47556//Test5&TestPerson5&TestAsteroid5&33423//TURNEND//", result);
     }
 
     @Test

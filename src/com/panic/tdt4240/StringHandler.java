@@ -1,7 +1,9 @@
 package com.panic.tdt4240;
 
+import java.math.RoundingMode;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.text.DecimalFormat;
 import java.util.*;
 
 /**
@@ -13,14 +15,19 @@ public class StringHandler {
     private static final int MAX_PLAYER_COUNT = 4;
     private ArrayList<ArrayList<String>> moves;
     private String history;
+    private DecimalFormat df;
 
     public StringHandler(){
         rand = new Random();
+        df = new DecimalFormat("#####");
+        df.setRoundingMode(RoundingMode.CEILING);
         moves = new ArrayList<>();
         history = "";
     }
     public StringHandler(Long seed){
         rand = new Random(seed);
+        df = new DecimalFormat("#####");
+        df.setRoundingMode(RoundingMode.CEILING);
         moves = new ArrayList<>();
         history = "";
     }
@@ -31,7 +38,7 @@ public class StringHandler {
     }
 
     public String createCardString(String order){
-
+        String tmpString = "";
         if(order==null) {
             order = "";
         }
@@ -43,7 +50,8 @@ public class StringHandler {
 
             //Finds the priorities of the cards and adds to a new ArrayList
             for(int i=0;i<list.size();i++){
-                int tmp = Integer.parseInt(list.get(i).split("&")[3]);
+                String[] data = list.get(i).split("&");
+                int tmp = Integer.parseInt(data[3]);
                 priority.add(tmp);
             }
 
@@ -65,7 +73,10 @@ public class StringHandler {
 
                 //Get out the strings with the highest priority
                 for(Integer integer:indices){
-                    tmpArray.add(list.get(integer));
+                    String[] tmpData = list.get(integer).split("&");
+                    long seed = Math.abs(rand.nextLong());
+                    tmpString = tmpData[0] + "&" + tmpData[1] + "&" + tmpData[2] + "&" + Long.toString(seed).substring(0,5);
+                    tmpArray.add(tmpString);
                     priority.set(integer,-2);
                 }
 
