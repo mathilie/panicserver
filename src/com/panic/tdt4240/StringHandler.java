@@ -80,6 +80,7 @@ public class StringHandler {
                 indices.clear();
             }
         }
+        order = order + "TURNEND//";
         history = history + order;
         return order;
     }

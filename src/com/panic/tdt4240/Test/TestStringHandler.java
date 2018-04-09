@@ -49,7 +49,7 @@ public class TestStringHandler {
 
         String result = stringHandler.createCardString(null);
         assertEquals("Test4&TestPerson4&TestAsteroid4&4//Test3&TestPerson3&TestAsteroid3&3//Test2&TestPerson2&TestAsteroid2&2//Test1&TestPerson1&TestAsteroid1&1//Test7&TestPerson7&TestAsteroid7&2//" +
-                "Test8&TestPerson8&TestAsteroid8&2//Test6&TestPerson6&TestAsteroid6&2//Test5&TestPerson5&TestAsteroid5&1//", result);
+                "Test8&TestPerson8&TestAsteroid8&2//Test6&TestPerson6&TestAsteroid6&2//Test5&TestPerson5&TestAsteroid5&1//TURNEND//", result);
     }
     @Test
     public void ShouldAddToString() {
@@ -73,7 +73,7 @@ public class TestStringHandler {
         stringHandler.addToMoves(testList);
         String result = stringHandler.createCardString(startString);
         assertEquals("Test4&TestPerson4&TestAsteroid4&4//Test3&TestPerson3&TestAsteroid3&3//Test2&TestPerson2&TestAsteroid2&2//Test1&TestPerson1&TestAsteroid1&1//Test7&TestPerson7&TestAsteroid7&2//" +
-                "Test8&TestPerson8&TestAsteroid8&2//Test6&TestPerson6&TestAsteroid6&2//Test5&TestPerson5&TestAsteroid5&1//", result);
+                "Test8&TestPerson8&TestAsteroid8&2//Test6&TestPerson6&TestAsteroid6&2//Test5&TestPerson5&TestAsteroid5&1//TURNEND//", result);
     }
 
     @Test
