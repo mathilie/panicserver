@@ -3,7 +3,6 @@ package com.panic.tdt4240;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -20,11 +19,11 @@ public class SorterThread implements Runnable {
             this.client = client;
             this.in = new Scanner(client.getInputStream());
             this.out = new PrintWriter(client.getOutputStream());
-            if (gameInstances == null) gameInstances = new HashMap<Integer,GameInstance>();
+            if (gameInstances == null) gameInstances = new HashMap<>();
     }
 
     public SorterThread(){
-        if(gameInstances==null) gameInstances = new HashMap<Integer, GameInstance>();
+        if(gameInstances==null) gameInstances = new HashMap<>();
     }
 
 
@@ -56,7 +55,7 @@ public class SorterThread implements Runnable {
     }
 
     private void createGame() {
-        GameInstance game = new GameInstance(client);
+        GameInstance game = new GameInstance();
         gameInstances.put(count.incrementAndGet(),game);
         game.run();
     }
@@ -64,7 +63,7 @@ public class SorterThread implements Runnable {
     private void enterGame(String ID) {
         int tmp = Integer.parseInt(ID);
         GameInstance game = gameInstances.get(tmp);
-        game.run();
+        game.addClient(client);
 
     }
 
