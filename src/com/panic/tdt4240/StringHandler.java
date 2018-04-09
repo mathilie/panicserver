@@ -1,9 +1,5 @@
 package com.panic.tdt4240;
 
-import java.math.RoundingMode;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.text.DecimalFormat;
 import java.util.*;
 
 /**
@@ -15,30 +11,24 @@ public class StringHandler {
     private static final int MAX_PLAYER_COUNT = 4;
     private ArrayList<ArrayList<String>> moves;
     private String history;
-    private DecimalFormat df;
 
     public StringHandler(){
         rand = new Random();
-        df = new DecimalFormat("#####");
-        df.setRoundingMode(RoundingMode.CEILING);
-        moves = new ArrayList<>();
-        history = "";
-    }
-    public StringHandler(Long seed){
-        rand = new Random(seed);
-        df = new DecimalFormat("#####");
-        df.setRoundingMode(RoundingMode.CEILING);
         moves = new ArrayList<>();
         history = "";
     }
 
+    public StringHandler(Long seed){
+        rand = new Random(seed);
+        moves = new ArrayList<>();
+        history = "";
+    }
 
     public void addToMoves(ArrayList<String> moveList){
         moves.add(moveList);
     }
 
     public String createCardString(String order){
-        String tmpString = "";
         if(order==null) {
             order = "";
         }
@@ -75,7 +65,7 @@ public class StringHandler {
                 for(Integer integer:indices){
                     String[] tmpData = list.get(integer).split("&");
                     long seed = Math.abs(rand.nextLong());
-                    tmpString = tmpData[0] + "&" + tmpData[1] + "&" + tmpData[2] + "&" + Long.toString(seed).substring(0,5);
+                    String tmpString = tmpData[0] + "&" + tmpData[1] + "&" + tmpData[2] + "&" + Long.toString(seed).substring(0,5);
                     tmpArray.add(tmpString);
                     priority.set(integer,-2);
                 }
