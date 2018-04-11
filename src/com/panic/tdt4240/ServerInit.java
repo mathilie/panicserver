@@ -1,18 +1,19 @@
 package com.panic.tdt4240;
 
-/**
- * Created by Mathias on 12.03.2018.
- */
+import java.net.ServerSocket;
+import java.net.Socket;
 
 public class ServerInit {
-    public static void main(String args[]){
+    public static void main(int args[]){
         try {
-            new ConnectorTester().create(args[0]);
-            System.out.println("server setup done");
+            ServerSocket ss = new ServerSocket(args[0]);
+            Socket client = ss.accept();
+            new SorterThread(client).run();
         } catch (Exception e){
             e.printStackTrace();
-            System.out.println("server setup failed");
         }
+
+
     }
 
 }
