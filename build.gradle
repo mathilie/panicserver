@@ -1,22 +1,17 @@
+apply plugin: "java"
+apply plugin: "idea"
 
+sourceCompatibility = 1.7
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
-apply plugin: 'java'
-apply plugin: 'eclipse'
-apply plugin: 'idea'
+sourceSets.main.java.srcDirs = [ "src/" ]
 
+//dependencies{
+//    testCompile group: 'com.sun.net.httpserver', name: 'http', version: '20070405'
+//}
 
-//bootJar {
-////    baseName = 'panicserver'
-////    version =  '0.1.0'
-////}
-
-repositories {
-    mavenCentral()
+jar{
+    manifest.attributes('Main-Class': 'com.panic.tdt4240.ServerInit')
 }
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
-
-
-task stage(dependsOn: compileJava)
+task stage()
