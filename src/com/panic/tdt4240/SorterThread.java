@@ -26,7 +26,8 @@ public class SorterThread implements Runnable {
 
     @Override
     public void run() {
-        while (true){
+        int counter = 0;
+        while (counter<10){
             if(in.hasNext()){
                 System.out.println("command recieved");
                 String[] data = in.next().split("//");
@@ -47,10 +48,15 @@ public class SorterThread implements Runnable {
                         return;
                 }
             } else {
-                close();
-                return;
+                counter++;
+                try {
+                    Thread.sleep(1000);
+                }catch (Exception e){}
             }
         }
+        System.out.println("No command. Thread is closing");
+        close();
+        return;
     }
 
     private void createGame() {

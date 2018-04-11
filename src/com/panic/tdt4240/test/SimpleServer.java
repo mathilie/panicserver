@@ -1,10 +1,11 @@
 package com.panic.tdt4240.test;
 
-import java.net.InetSocketAddress;
-
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
+
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 
 public class SimpleServer extends WebSocketServer {
 
@@ -45,9 +46,10 @@ public class SimpleServer extends WebSocketServer {
 	}
 
 
+
 	public static void main(String[] args) {
 		String host = "localhost";
-		int port = 8887;
+		int port = args[0];
 
 		WebSocketServer server = new SimpleServer(new InetSocketAddress(host, port));
 		server.run();
