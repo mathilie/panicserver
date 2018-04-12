@@ -22,13 +22,16 @@ public class GameController {
         String command=data[0];
         switch (command){
             case "ENTER":
-                enterGame(data[1],conn, data[2]);
+                if(data.length>2) enterGame(data[1],conn, data[2]); // IF RECONNECTING
+                else enterGame(data[1],conn, null);
                 break;
             case "CREATE":
-                createGame();
+                createGame(conn);
                 break;
             case "TEST":
                 System.out.println("Client connected and message recieved");
+                conn.send("OK");
+                conn.close();
                 return;
             case "TOGAME":
                 toGame(data);
@@ -43,12 +46,13 @@ public class GameController {
 
     private void toGame(String[] data) {
         int gameID = Integer.parseInt(data[1]);
-        String[] dataToGame = Arrays.stream(data).skip(2).toArray(String[]::new);
+        String[] dataToGame = Arrays.stream(data).skip(2).toArray(String[]::new); // removes switch command and gameID
         gameInstances.get(gameID).command(dataToGame);
     }
 
-    private void createGame() {
+    private void createGame(WebSocket conn) {
         GameInstance game = new GameInstance();
+        game.addClient(conn);
         gameInstances.put(count.incrementAndGet(),game);
     }
 

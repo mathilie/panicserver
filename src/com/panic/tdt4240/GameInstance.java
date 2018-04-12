@@ -4,7 +4,7 @@ import org.java_websocket.WebSocket;
 
 import java.util.ArrayList;
 
-public class GameInstance implements Runnable {
+public class GameInstance{
 
     private ArrayList<WebSocket> clients;
     private StringHandler handler;
@@ -21,12 +21,26 @@ public class GameInstance implements Runnable {
         clients.add(client);
     }
 
+    public long getSeed() {
+        return seed;
+    }
+
+
     public void command(String[] data){
+        switch (data[0]){
+            case "something":
+                //code
+                break;
+
+            case "Moves":
+
+
+
+            default:
+
+        }
 
     }
-    @Override
-    public void run() {
 
-    }
 
 }
