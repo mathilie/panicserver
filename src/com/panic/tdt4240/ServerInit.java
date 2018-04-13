@@ -4,16 +4,22 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class ServerInit {
-    public static void main(int args[]){
-        try {
-            ServerSocket ss = new ServerSocket(args[0]);
-            Socket client = ss.accept();
-            new SorterThread(client).run();
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-
-
+    private static ServerSocket ss;
+    private static Socket client;
+    public static void main(String args[]){
+         try{
+             ss = new ServerSocket(Integer.parseInt(args[0]));
+            while (true){
+                try {
+                    client = ss.accept();
+                    System.out.println("Connection "+client.toString()+" accepted");
+                    new Thread(new SorterThread(client)).start();
+                    client = null;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    continue;
+                }
+            }
+        }catch(Exception er){}
     }
-
 }
