@@ -1,8 +1,13 @@
 
+plugins {
+    id "com.heroku.sdk.heroku-gradle" version "1.0.1"
+}
+
 apply plugin: 'application'
 apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
+
 
 sourceSets {
     main.java.srcDir("src")
@@ -64,4 +69,4 @@ dependencies {
     testCompile 'org.junit.jupiter:junit-jupiter-api:5.1.1'
 }
 
-task stage(dependsOn: compileJava)
+task stage(dependsOn: costumeFatJar)
