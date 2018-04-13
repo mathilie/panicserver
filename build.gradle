@@ -12,8 +12,12 @@ sourceSets {
 mainClassName = "com.panic.tdt4240.ServerInit"
 
 run {
-    args = ["8887"]
-    dependsOn "jar"
+    //args = ["8887"]
+    if(project.hasProperty('myargs')){
+        args(myargs.split(','))
+    }
+    main = "com.panic.tdt4240.ServerInit"
+    classpath = sourceSets.main.runtimeClasspath
 }
 
 
