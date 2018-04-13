@@ -105,13 +105,12 @@ public class StringHandler {
         return order;
     }
 
-    public void writeCardStringToList(String cardString){
-        String[] data = cardString.split("//");
-        for (int i=0 ; i<data.length ; i++){
+    public void writeCardStringToList(ArrayList<String> cardString){
+        for (int i=0 ; i<cardString.size() ; i++){
             if (moves.size()<=i){
                 moves.add(new ArrayList<>());
             }
-            moves.get(i).add(data[i]);
+            moves.get(i).add(cardString.get(i));
         }
     }
 
