@@ -1,23 +1,48 @@
 
-
+apply plugin: 'application'
 apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
 
 
+sourceSets {
+    main.java.srcDir("src")
+    test.java.srcDir("test")
+}
+
+mainClassName = "com.panic.tdt4240.ServerInit"
+
+run {
+    //args = ["8887"]
+    if(project.hasProperty('myargs')){
+        args(myargs.split(','))
+    }
+    main = "com.panic.tdt4240.ServerInit"
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+
 jar {
     baseName = 'panicserver'
-   version =  '0.1.0'
+    version =  '0.1.0'
+    manifest.attributes 'Main-Class': "com.panic.tdt4240.ServerInit"
+
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+task customFatJar(type: Jar) {
+    manifest {
+        attributes 'Main-Class': 'com.panic.tdt4240.ServerInit'
+    }
+    baseName = 'all-in-one-jar'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
 }
 
 repositories {
     mavenCentral()
-    /*maven {
-        url "https://mvnrepository.com/artifact/javax/javaee-api/"
-    }
-    maven {
-        url "https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-runner/"
-    }*/
 }
 
 
@@ -28,6 +53,7 @@ targetCompatibility = 1.8
 
 dependencies {
     compile 'org.java-websocket:Java-WebSocket:1.3.8'
+    testCompile 'junit:junit:4.12'
     //compile group: 'javax', name: 'javaee-api', version: '8.0'
     //testCompile group: 'org.eclipse.jetty', name: 'jetty-runner', version: '9.4.2.v20170220'
 /*    compile group: 'com.typesafe.akka', name: 'akka-stream_2.12', version:'2.5.11'
@@ -35,6 +61,8 @@ dependencies {
     compile group: 'com.typesafe.akka', name: 'akka-http_2.12', version:'10.1.0'
     testCompile group: 'com.typesafe.akka', name: 'akka-http-testkit_2.12', version:'10.1.0'
     compile group: 'com.typesafe.akka', name: 'akka-actor_2.12', version: '2.5.11'
-    testCompile group: 'com.typesafe.akka', name: 'akka-testkit_2.12', version: '2.5.11'*/
+    testCompile group: 'com.typesafe.akka', name: 'akka-tmestkit_2.12', version: '2.5.11'*/
+    testCompile 'org.junit.jupiter:junit-jupiter-api:5.1.1'
 }
-task stage(dependsOn: compileJava)
+
+task stage(dependsOn: jar)
