@@ -65,4 +65,4 @@ dependencies {
     testCompile 'org.junit.jupiter:junit-jupiter-api:5.1.1'
 }
 
-task stage(dependsOn: costumeFatJar)
+task stage(dependsOn: customFatJar)
