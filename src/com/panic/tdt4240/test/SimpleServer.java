@@ -49,7 +49,7 @@ public class SimpleServer extends WebSocketServer {
 
 	public static void main(String[] args) {
 		String host = "localhost";
-		int port = args[0];
+		int port = Integer.parseInt(args[0]);
 
 		WebSocketServer server = new SimpleServer(new InetSocketAddress(host, port));
 		server.run();
