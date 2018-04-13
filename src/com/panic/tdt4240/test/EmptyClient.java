@@ -31,6 +31,15 @@ public class EmptyClient extends WebSocketClient {
 	@Override
 	public void onMessage(String message) {
 		System.out.println("received message: " + message);
+		switch(message) {
+			case "newTurn":
+				//dostuff
+				break;
+			case "onMessage":
+				Listener.onMessage(message);
+				break;
+		}
+
 	}
 
 	@Override
@@ -44,7 +53,25 @@ public class EmptyClient extends WebSocketClient {
 	}
 
 	public static void main(String[] args) throws URISyntaxException {		
-		WebSocketClient client = new EmptyClient(new URI("ws://localhost:8887"));
+		WebSocketClient client = new EmptyClient(new URI("ws://panicserver.herokuapp.com"));
 		client.connect();
+		client.send("Hello world");
+		client.onMessage();
 	}
+
+
+	static class Listener{
+		String returnstring="";
+		public void onMessage(String s){
+			returnstring = s;
+		}
+		public String waitForReturn(){
+			while(returnstring.length()<1){
+			}
+			String s = returnstring;
+			returnstring = "";
+			return s;
+		}
+
+}
 }
