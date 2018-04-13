@@ -123,3 +123,6 @@ Thumbs.db
 !/ios-moe/xcode/*.xcodeproj/xcshareddata
 !/ios-moe/xcode/*.xcodeproj/project.pbxproj
 /ios-moe/xcode/native/
+*.class
+out/production/classes/com/panic/tdt4240/GameInstance.class
+out/production/classes/com/panic/tdt4240/TurnTimer.class
