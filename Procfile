@@ -1,1 +1,1 @@
-web: java $JAVA_OPTS -jar out/artifacts/panicserver/panicserver.jar $PORT
+web: java $JAVA_OPTS -jar build/libs/panicserver-0.1.0.jar $PORT

@@ -16,7 +16,7 @@ public class ServerInit extends WebSocketServer {
 
 
     public static void main(String[] args) {
-        String host = "localhost";
+        String host = "0.0.0.0";
         int port = Integer.parseInt(args[0]);
 
         WebSocketServer server = new ServerInit(new InetSocketAddress(host, port));

@@ -1,4 +1,4 @@
-package com.panic.tdt4240.Test;
+package com.panic.tdt4240;
 
 import com.panic.tdt4240.StringHandler;
 import org.junit.Before;
@@ -10,7 +10,7 @@ import java.util.ArrayList;
 
 import static org.junit.Assert.assertEquals;
 
-@RunWith(JUnit4.class)
+
 public class TestStringHandler {
 
     private StringHandler stringHandler;
