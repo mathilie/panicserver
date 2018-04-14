@@ -23,7 +23,7 @@ public class GameController {
 
     public void Sort(WebSocket conn, String[] data) {
         System.out.println("command recieved");
-        System.out.println(data);
+        System.out.println(data.toString());
         String command=data[0];
         switch (command){
             case "ENTER":
