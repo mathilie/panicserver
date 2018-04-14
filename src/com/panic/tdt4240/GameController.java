@@ -76,7 +76,6 @@ public class GameController {
     private void getLobbies(WebSocket conn){
         String sendString = "LOBBIES:";
         for(Map.Entry<Integer,GameInstance> gameInstance:gameInstances.entrySet()){
-            sendString = sendString + gameInstance.getKey().toString() + "&";
         }
         sendString = sendString.substring(0,sendString.length()-1);
         conn.send(sendString);

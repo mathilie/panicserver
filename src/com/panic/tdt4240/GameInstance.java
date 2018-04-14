@@ -423,4 +423,15 @@ public class GameInstance implements TurnListener{
         return clients;
     }
 
+    public String getGameName() {
+        return gameName;
+    }
+
+    public int getCurrentPlayerNum() {
+        return clients.size();
+    }
+
+    public int getMaxPlayerCount() {
+        return playerCount;
+    }
 }
