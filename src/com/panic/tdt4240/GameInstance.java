@@ -8,6 +8,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class GameInstance{
 
     private static final int MAX_PLAYER_COUNT = 4;
+    private int playerCount;
+    private ArrayList<Integer> playerIDs;
+
     private static final int TURN_DURATION = 90;
     private ArrayList<WebSocket> clients;
     private HashMap<WebSocket,String> vehicles;
@@ -21,7 +24,7 @@ public class GameInstance{
     private long seed;
     private Random rand;
     private String mapID;
-    private String history;
+    private String log;
     private int numRecieved;
     private int turnStart;
     private Timer timer;
@@ -31,7 +34,18 @@ public class GameInstance{
     private static final AtomicInteger count = new AtomicInteger(0);
 
 
-    public GameInstance(int gameID,String gameName){
+    public GameInstance(int gameID, String playerCount,String gameName){
+        int playerNum = Integer.parseInt(playerCount);
+        if(playerNum<MAX_PLAYER_COUNT) {
+            this.playerCount = playerNum;
+        }
+        else{
+            this.playerCount = MAX_PLAYER_COUNT;
+        }
+        for(int i=0;i<this.playerCount;i++){
+            playerIDs.add(i);
+        }
+
         this.gameID = Integer.toString(gameID);
         this.gameName = gameName;
         timer = new Timer();
@@ -46,13 +60,17 @@ public class GameInstance{
         vehicles = new HashMap<>();
         seed = System.currentTimeMillis();
 
-        history = "";
+        log = "";
         turnStart = 0;
         numRecieved = 0;
     }
 
-    public void addClient(WebSocket client){
-        if(clients.size()<=MAX_PLAYER_COUNT) {
+    /**
+     * Adds a client to the list of clients if there are not more than the max number of players
+     * @param client The client requesting to join the game
+     */
+    public void addClient(String playerID, WebSocket client){
+        if(clients.size()<=playerCount) {
             clients.add(client);
             if(client!=null) {
                 client.send(mapID);
@@ -63,11 +81,11 @@ public class GameInstance{
         }
     }
 
-    public long getSeed() {
-        return seed;
-    }
-
-
+    /**
+     * The method used to decide which methods to be run
+     * @param data The given input for the methods. The first element is always the command string which decides method call
+     * @param conn The client sending the request
+     */
     public void command(String[] data, WebSocket conn){
         switch (data[0]) {
 
@@ -75,25 +93,31 @@ public class GameInstance{
                 clientReady(conn,data[1]);
                 break;
 
-            case "GAMEINFO":
+            case "GET_LOG":
+                getLog(conn);
+                break;
+
+            case "GAME_INFO":
                 sendGameInfo(conn);
                 break;
 
-            case "MOVES":
+            case "SEND_CARDS":
                 writeCardStringToList(data);
-                sendcardString();
+                break;
+
+            case "SEND_RUN_EFFECT_STATE":
+                sendCardString();
                 break;
 
             case "BEGIN_TURN":
                 beginTurn();
-                //code
                 break;
 
             case "LEAVE_GAME":
                 removeClient(conn);
                 break;
 
-            case "SEND_LOBBY_INFO":
+            case "GET_LOBBY_INFO":
                 sendLobbyInfo(conn);
                 break;
 
@@ -160,7 +184,7 @@ public class GameInstance{
             }
         }
         order = order + "TURNEND//";
-        history = history + order;
+        log = log + order;
         return order;
     }
 
@@ -169,7 +193,6 @@ public class GameInstance{
      * @param cardString
      */
     private void writeCardStringToList(String[] cardString){
-        numRecieved++;
         for (int i=1 ; i<cardString.length ; i++) {
             if (moves.size() <= i) {
                 moves.add(new ArrayList<>());
@@ -208,15 +231,24 @@ public class GameInstance{
     /**
      * Sends the card string to all clients if all clients have sent their cards
      */
-    private void sendcardString(){
+    private void sendCardString(){
+        numRecieved++;
         if (clients.size() == numRecieved) {
             numRecieved = 0;
-            String sendString = createCardString();
+            String sendString = "GET_TURN:" + createCardString();
             for (WebSocket client : clients) {
                 client.send(sendString);
             }
             moves.clear();
         }
+    }
+
+    /**
+     * Sends the log of the current game. Always gets called when someone joins the game
+     * @param client client requesting the log
+     */
+    private void getLog(WebSocket client){
+        client.send("GET_LOG:" + log);
     }
 
     /**
@@ -247,15 +279,9 @@ public class GameInstance{
             turnStart=0;
             for(WebSocket client:clients){
                 if(client!=null) {
-                    client.send("BEGIN_TURN");
+                    client.send("GAME_START");
                 }
             }
-            timer.scheduleAtFixedRate(new TimerTask() {
-                @Override
-                public void run() {
-                    System.out.println(setInterval());
-                }
-            }, delay, period);
         }
     }
 
@@ -286,6 +312,7 @@ public class GameInstance{
             turnStart=0;
             clients.remove(client);
             for(WebSocket conn:clients){
+                sendLobbyInfo(conn);
                 conn.send("UNREADY");
             }
             if(vehicles.containsKey(client)) {
@@ -323,7 +350,7 @@ public class GameInstance{
 
     /**
      * Sends a string containng the max number of players, the game name, the game ID, the map being used and all the vehicles curently in use. Formatted as:
-     * "LOBBY_INFO:MAX_PLAYERS:GAME_NAME:GAME_ID:MAP_ID:VEHICLE1&VEHICLE2&..."
+     * "LOBBY_INFO:MAX_PLAYERS:GAME_NAME:GAME_ID:MAP_ID"
      * @param client
      * @return
      */
@@ -333,10 +360,7 @@ public class GameInstance{
         sendString = sendString + gameName + ":";
         sendString = sendString + gameID + ":";
         sendString = sendString + mapID + ":";
-        for(Map.Entry<WebSocket,String> vehicle:vehicles.entrySet()){
-            sendString = sendString + vehicle.getValue() + "&";
-        }
-        sendString = sendString.substring(0,sendString.length()-1);
+        sendString = sendString + Integer.toString(clients.indexOf(client));
         client.send(sendString);
         return sendString;
     }

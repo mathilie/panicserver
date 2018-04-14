@@ -26,7 +26,7 @@ public class GameController {
                 else enterGame(data[1],conn, null);
                 break;
             case "CREATE":
-                createGame(conn, data[1], data[2]);
+                createGame(conn, data[1], data[2], data[3]);
                 break;
             case "TEST":
                 System.out.println("Client connected and message recieved");
@@ -50,18 +50,18 @@ public class GameController {
         gameInstances.get(gameID).command(dataToGame, conn);
     }
 
-    private void createGame(WebSocket conn, String mapID, String gameName) {
+    private void createGame(WebSocket conn, String mapID, String playerCount, String gameName) {
         int gameID = count.incrementAndGet();
-        GameInstance game = new GameInstance(gameID,gameName);
+        GameInstance game = new GameInstance(gameID, playerCount,gameName);
         game.setMapID(mapID);
-        game.addClient(conn);
+        game.addClient(null, conn);
         gameInstances.put(gameID,game);
     }
 
     private void enterGame(String gameID, WebSocket conn, String playerID) {
         int tmp = Integer.parseInt(gameID);
         GameInstance game = gameInstances.get(tmp);
-        game.addClient(conn);
+        game.addClient(playerID, conn);
     }
 
     private void close(){

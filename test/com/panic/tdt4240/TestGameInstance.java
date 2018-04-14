@@ -26,7 +26,7 @@ public class TestGameInstance {
 
     @Before
     public void init(){
-        gameInstance = new GameInstance(1,"TEST_GAME");
+        gameInstance = new GameInstance(1, "2","TEST_GAME");
         testSocket1 = mock(WebSocket.class);
         testSocket2 = mock(WebSocket.class);
     }
