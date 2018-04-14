@@ -87,7 +87,7 @@ public class GameController {
         if(!playerIDs.containsKey(conn)){
             playerIDs.put(conn,playerCount.incrementAndGet());
         }
-        conn.send(Integer.toString(playerIDs.get(conn)));
+        conn.send("CONNECTION_ID:" + Integer.toString(playerIDs.get(conn)));
     }
 
     private void close(){
