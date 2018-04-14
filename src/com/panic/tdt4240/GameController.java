@@ -51,9 +51,6 @@ public class GameController {
                 close();
                 return;
         }
-        System.out.println("No command. Thread is closing");
-        close();
-        return;
     }
 
     private void toGame(String[] data, WebSocket conn) {
@@ -68,6 +65,7 @@ public class GameController {
         game.setMapID(mapID);
         game.addClient(playerIDs.get(conn), conn);
         gameInstances.put(gameID,game);
+        game.sendLobbyInfo(conn);
     }
 
     private void enterGame(String gameID, WebSocket conn) {

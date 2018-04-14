@@ -399,7 +399,6 @@ public class GameInstance implements TurnListener{
         sendString = sendString + gameName + ":";
         sendString = sendString + gameID + ":";
         sendString = sendString + mapID + ":";
-        sendString = sendString + Integer.toString(playerIDs.get(client));
         client.send(sendString);
         return sendString;
     }
