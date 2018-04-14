@@ -36,7 +36,7 @@ public class EmptyClient extends WebSocketClient {
 				//dostuff
 				break;
 			case "onMessage":
-				Listener.onMessage(message);
+
 				break;
 		}
 
@@ -56,7 +56,7 @@ public class EmptyClient extends WebSocketClient {
 		WebSocketClient client = new EmptyClient(new URI("ws://panicserver.herokuapp.com"));
 		client.connect();
 		client.send("Hello world");
-		client.onMessage();
+
 	}
 
 

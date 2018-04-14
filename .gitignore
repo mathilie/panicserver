@@ -1,6 +1,6 @@
 ## Java
 
-
+*.class
 *.war
 *.ear
 hs_err_pid*
@@ -124,7 +124,7 @@ Thumbs.db
 !/ios-moe/xcode/*.xcodeproj/project.pbxproj
 /ios-moe/xcode/native/
 
-
 ## Output
 out/
 *.class
+

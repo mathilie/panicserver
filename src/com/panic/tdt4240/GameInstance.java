@@ -5,34 +5,36 @@ import org.java_websocket.WebSocket;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class GameInstance{
+public class GameInstance implements TurnListener{
 
-    private static final int MAX_PLAYER_COUNT = 4;
+
     private int playerCount;
     private HashMap<WebSocket, Integer> playerIDs;
-
-    private static final int TURN_DURATION = 90;
     private ArrayList<WebSocket> clients;
-    private HashMap<WebSocket,String> vehicles;
+    private final long seed;
+    private HashMap<String,String> gameData;
+    private HashMap<Integer, String> gameHashes;
+    private static final int MAX_PLAYER_COUNT = 4;
+    private static final int TURN_DURATION = 90;
     private ArrayList<ArrayList<String>> moves;
-    private static final String[] ALL_COLORS = {"RED","BLUE","GREEN","YELLOW"};
-    private ArrayList<String> colors;
-
-    private String gameName;
-    private String gameID;
-
-    private long seed;
-    private Random rand;
-    private String mapID;
-    private String log;
+    private HashMap<WebSocket,String> vehicles;
+    String mapID;
+    private String history;
     private int numRecieved;
     private int turnStart;
     private Timer timer;
     private int delay;
     private int period;
     private static int interval;
+    private static final String[] ALL_COLORS = {"RED","BLUE","GREEN","YELLOW"};
+    private ArrayList<String> colors;
+
+    private String gameName;
+    private String gameID;
+
+    private Random rand;
+    private String log;
     private static final AtomicInteger count = new AtomicInteger(0);
-    private HashMap<String,String> gameData;
 
 
     public GameInstance(int gameID, String playerCount,String gameName){
@@ -256,25 +258,42 @@ public class GameInstance{
      * @param conn Client that has readied up
      * @param VType The Vehicle type the client has selected
      */
-    private void clientReady(WebSocket conn,String VType){
+    private void clientReady(WebSocket conn,String VType) {
         String VID = "";
         String color = "";
-        String vehicleString="";
+        String vehicleString = "";
         turnStart++;
-        if(count.get()<1000) {
+        if (count.get() < 1000) {
             VID = String.format("%03d", count.incrementAndGet());
-        }
-        else{
+        } else {
             //TODO: What if someone enters and leaves 1000 times?
         }
         VID = "V-" + VID;
-        if(colors.size()>0) {
+        if (colors.size() > 0) {
             color = colors.get(0);
             colors.remove(0);
         }
         vehicleString = VType + "," + VID + "," + color;
+    }
 
-        vehicles.put(conn,vehicleString);
+
+    public void startGame(){
+        for(WebSocket client: clients) client.send("START");
+        //timer = new TurnTimer();
+        //timer.setListener(this);
+        //new Thread(timer).start();
+        gameHashes = new HashMap<>();
+    }
+
+
+    //TODO What's this what's this?
+
+/*    public void addHash(WebSocket client, String hash){
+        gameHashes.put(clients.indexOf(client), hash);
+        if(gameHashes.size()==clients.size()){
+
+
+        vehicles.put(client,vehicleString);
         if(turnStart==clients.size()){
             turnStart=0;
             for(WebSocket client:clients){
@@ -282,8 +301,9 @@ public class GameInstance{
                     client.send("GAME_START");
                 }
             }
+
         }
-    }
+    }*/
 
     /**
      * Starts the new round if all players have readied up. Starts a timer after sending "START_TURN" to all clients
@@ -331,6 +351,24 @@ public class GameInstance{
         }
     }
 
+//TODO: Java timer vs self made timer
+            //Overrides from timer
+    @Override
+    public void turnFinished() {
+
+    }
+
+    @Override
+    public void pauseOn() {
+
+    }
+
+    @Override
+    public void pauseOff() {
+
+    }
+
+
     /**
      * Sends the vehicle ID to the client requesting it. If no vehicle ID is set, "NONE" is sent. Format: "ALL_VEHICLES:MY_VEHICLE:MAPID
      * @param client The client requesting a vehicle ID.
@@ -373,4 +411,5 @@ public class GameInstance{
     public ArrayList<WebSocket> getClients() {
         return clients;
     }
+
 }
