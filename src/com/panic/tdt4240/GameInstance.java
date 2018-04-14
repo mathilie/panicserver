@@ -14,9 +14,13 @@ public class GameInstance{
     private ArrayList<ArrayList<String>> moves;
     private static final String[] ALL_COLORS = {"RED","BLUE","GREEN","YELLOW"};
     private ArrayList<String> colors;
+
+    private String gameName;
+    private String gameID;
+
     private long seed;
-    Random rand;
-    String mapID;
+    private Random rand;
+    private String mapID;
     private String history;
     private int numRecieved;
     private int turnStart;
@@ -27,7 +31,9 @@ public class GameInstance{
     private static final AtomicInteger count = new AtomicInteger(0);
 
 
-    public GameInstance(){
+    public GameInstance(int gameID,String gameName){
+        this.gameID = Integer.toString(gameID);
+        this.gameName = gameName;
         timer = new Timer();
         interval = TURN_DURATION;
         delay = 1000;
@@ -46,9 +52,11 @@ public class GameInstance{
     }
 
     public void addClient(WebSocket client){
-        if(clients.size()>=MAX_PLAYER_COUNT) {
+        if(clients.size()<=MAX_PLAYER_COUNT) {
             clients.add(client);
-            client.send(mapID);
+            if(client!=null) {
+                client.send(mapID);
+            }
         }
         else{
             System.out.println("Attempted to join a full game");
@@ -67,11 +75,7 @@ public class GameInstance{
                 clientReady(conn,data[1]);
                 break;
 
-            case "GET_MAP":
-                writeMapID();
-                break;
-
-            case "GAME_INFO":
+            case "GAMEINFO":
                 sendGameInfo(conn);
                 break;
 
@@ -87,6 +91,10 @@ public class GameInstance{
 
             case "LEAVE_GAME":
                 removeClient(conn);
+                break;
+
+            case "SEND_LOBBY_INFO":
+                sendLobbyInfo(conn);
                 break;
 
                 default:
@@ -197,12 +205,6 @@ public class GameInstance{
         this.mapID = ID;
     }
 
-    private void writeMapID() {
-        for(WebSocket client:clients){
-            client.send(mapID);
-        }
-    }
-
     /**
      * Sends the card string to all clients if all clients have sent their cards
      */
@@ -231,7 +233,6 @@ public class GameInstance{
             VID = String.format("%03d", count.incrementAndGet());
         }
         else{
-            VID = "";
             //TODO: What if someone enters and leaves 1000 times?
         }
         VID = "V-" + VID;
@@ -245,7 +246,9 @@ public class GameInstance{
         if(turnStart==clients.size()){
             turnStart=0;
             for(WebSocket client:clients){
-                client.send("BEGIN_TURN");
+                if(client!=null) {
+                    client.send("BEGIN_TURN");
+                }
             }
             timer.scheduleAtFixedRate(new TimerTask() {
                 @Override
@@ -304,19 +307,45 @@ public class GameInstance{
      * Sends the vehicle ID to the client requesting it. If no vehicle ID is set, "NONE" is sent. Format: "ALL_VEHICLES:MY_VEHICLE:MAPID
      * @param client The client requesting a vehicle ID.
      */
-    private void sendGameInfo(WebSocket client){
+    public String sendGameInfo(WebSocket client){
         String sendString = "GAMEINFO:";
         for(Map.Entry<WebSocket,String> vehicle:vehicles.entrySet()){
             sendString = sendString + vehicle.getValue() + "&";
         }
         sendString = sendString.substring(0,sendString.length()-1) + ":";
         sendString = sendString + mapID + ":";
-        String myVID = vehicles.get(client).split("&")[1];
-        String tmpString = sendString + myVID;
-        client.send(tmpString);
+        String myVID = vehicles.get(client);
+        myVID = myVID.split(",")[1];
+        sendString = sendString + myVID;
+        client.send(sendString);
+        return sendString;
     }
 
-    protected HashMap<WebSocket, String> getVehicles() {
+    /**
+     * Sends a string containng the max number of players, the game name, the game ID, the map being used and all the vehicles curently in use. Formatted as:
+     * "LOBBY_INFO:MAX_PLAYERS:GAME_NAME:GAME_ID:MAP_ID:VEHICLE1&VEHICLE2&..."
+     * @param client
+     * @return
+     */
+    public String sendLobbyInfo(WebSocket client){
+        String sendString = "LOBBY_INFO:";
+        sendString = sendString + Integer.toString(MAX_PLAYER_COUNT) + ":";
+        sendString = sendString + gameName + ":";
+        sendString = sendString + gameID + ":";
+        sendString = sendString + mapID + ":";
+        for(Map.Entry<WebSocket,String> vehicle:vehicles.entrySet()){
+            sendString = sendString + vehicle.getValue() + "&";
+        }
+        sendString = sendString.substring(0,sendString.length()-1);
+        client.send(sendString);
+        return sendString;
+    }
+
+    public HashMap<WebSocket, String> getVehicles() {
         return vehicles;
+    }
+
+    public ArrayList<WebSocket> getClients() {
+        return clients;
     }
 }
