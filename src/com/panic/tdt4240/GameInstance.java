@@ -74,9 +74,6 @@ public class GameInstance implements TurnListener{
         if(clients.size()<=playerCount) {
             clients.add(client);
             playerIDs.put(client,playerID);
-            if(client!=null) {
-                client.send(mapID);
-            }
         }
         else{
             System.out.println("Attempted to join a full game");
@@ -398,7 +395,7 @@ public class GameInstance implements TurnListener{
         sendString = sendString + Integer.toString(MAX_PLAYER_COUNT) + ":";
         sendString = sendString + gameName + ":";
         sendString = sendString + gameID + ":";
-        sendString = sendString + mapID + ":";
+        sendString = sendString + mapID;
         client.send(sendString);
         return sendString;
     }
