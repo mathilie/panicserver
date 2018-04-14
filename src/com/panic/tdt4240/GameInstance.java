@@ -271,6 +271,8 @@ public class GameInstance implements TurnListener{
             colors.remove(0);
         }
         vehicleString = VType + "," + VID + "," + color;
+        vehicles.put(conn,vehicleString);
+        sendLobbyInfo(conn);
     }
 
 
@@ -396,6 +398,19 @@ public class GameInstance implements TurnListener{
         sendString = sendString + gameName + ":";
         sendString = sendString + gameID + ":";
         sendString = sendString + mapID;
+        for(Map.Entry<WebSocket,Integer> PID:playerIDs.entrySet()){
+            sendString = sendString + PID.getValue().toString() + "&";
+        }
+        sendString = sendString.substring(0,sendString.length()-1) + ":";
+        for(WebSocket conn:clients){
+            if(playerIDs.containsKey(conn) && vehicles.containsKey(conn)){
+                sendString = sendString + vehicles.get(conn);
+            }
+            else{
+                sendString = sendString + "NONE";
+            }
+        }
+
         client.send(sendString);
         return sendString;
     }
