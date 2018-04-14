@@ -3,14 +3,17 @@ package com.panic.tdt4240;
 import org.java_websocket.WebSocket;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class GameInstance{
 
     private static final int MAX_PLAYER_COUNT = 4;
     private static final int TURN_DURATION = 90;
     private ArrayList<WebSocket> clients;
-    private ArrayList<ArrayList<String>> moves;
     private HashMap<WebSocket,String> vehicles;
+    private ArrayList<ArrayList<String>> moves;
+    private static final String[] ALL_COLORS = {"RED","BLUE","GREEN","YELLOW"};
+    private ArrayList<String> colors;
     private long seed;
     Random rand;
     String mapID;
@@ -21,6 +24,7 @@ public class GameInstance{
     private int delay;
     private int period;
     private static int interval;
+    private static final AtomicInteger count = new AtomicInteger(0);
 
 
     public GameInstance(){
@@ -30,6 +34,7 @@ public class GameInstance{
         period = 1000;
 
         moves = new ArrayList<>();
+        colors = new ArrayList<>(Arrays.asList(ALL_COLORS));
         rand = new Random();
         clients = new ArrayList<>();
         vehicles = new HashMap<>();
@@ -218,13 +223,29 @@ public class GameInstance{
      * @param VType The Vehicle type the client has selected
      */
     private void clientReady(WebSocket conn,String VType){
+        String VID = "";
+        String color = "";
+        String vehicleString="";
         turnStart++;
+        if(count.get()<1000) {
+            VID = String.format("%03d", count.incrementAndGet());
+        }
+        else{
+            VID = "";
+            //TODO: What if someone enters and leaves 1000 times?
+        }
+        VID = "V-" + VID;
+        if(colors.size()>0) {
+            color = colors.get(0);
+            colors.remove(0);
+        }
+        vehicleString = VType + "," + VID + "," + color;
 
-        vehicles.put(conn,VType);
+        vehicles.put(conn,vehicleString);
         if(turnStart==clients.size()){
             turnStart=0;
             for(WebSocket client:clients){
-                client.send("START_TURN");
+                client.send("BEGIN_TURN");
             }
             timer.scheduleAtFixedRate(new TimerTask() {
                 @Override
@@ -242,7 +263,7 @@ public class GameInstance{
         turnStart++;
         if (turnStart == clients.size()) {
             for(WebSocket client:clients){
-                client.send("START_TURN");
+                client.send("BEGIN_TURN");
             }
             timer.scheduleAtFixedRate(new TimerTask() {
                 @Override
@@ -261,7 +282,12 @@ public class GameInstance{
         if(clients.contains(client)){
             turnStart=0;
             clients.remove(client);
+            for(WebSocket conn:clients){
+                conn.send("UNREADY");
+            }
             if(vehicles.containsKey(client)) {
+                String color = vehicles.get(client).split(",")[2];
+                colors.add(color);
                 vehicles.remove(client);
             }
             if(clients.size()==0){
