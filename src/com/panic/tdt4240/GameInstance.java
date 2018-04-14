@@ -397,7 +397,7 @@ public class GameInstance implements TurnListener{
         sendString = sendString + Integer.toString(MAX_PLAYER_COUNT) + ":";
         sendString = sendString + gameName + ":";
         sendString = sendString + gameID + ":";
-        sendString = sendString + mapID;
+        sendString = sendString + mapID + ":";
         for(Map.Entry<WebSocket,Integer> PID:playerIDs.entrySet()){
             sendString = sendString + PID.getValue().toString() + "&";
         }
