@@ -9,7 +9,7 @@ public class GameInstance{
 
     private static final int MAX_PLAYER_COUNT = 4;
     private int playerCount;
-    private ArrayList<Integer> playerIDs;
+    private HashMap<WebSocket, Integer> playerIDs;
 
     private static final int TURN_DURATION = 90;
     private ArrayList<WebSocket> clients;
@@ -36,16 +36,13 @@ public class GameInstance{
 
     public GameInstance(int gameID, String playerCount,String gameName){
         int playerNum = Integer.parseInt(playerCount);
+        playerIDs = new HashMap<>();
         if(playerNum<MAX_PLAYER_COUNT) {
             this.playerCount = playerNum;
         }
         else{
             this.playerCount = MAX_PLAYER_COUNT;
         }
-        for(int i=0;i<this.playerCount;i++){
-            playerIDs.add(i);
-        }
-
         this.gameID = Integer.toString(gameID);
         this.gameName = gameName;
         timer = new Timer();
@@ -69,9 +66,10 @@ public class GameInstance{
      * Adds a client to the list of clients if there are not more than the max number of players
      * @param client The client requesting to join the game
      */
-    public void addClient(String playerID, WebSocket client){
+    public void addClient(int playerID, WebSocket client){
         if(clients.size()<=playerCount) {
             clients.add(client);
+            playerIDs.put(client,playerID);
             if(client!=null) {
                 client.send(mapID);
             }
@@ -173,7 +171,7 @@ public class GameInstance{
                 }
 
                 //randomize the order of similar priorities and write to string
-                if(tmpArray!=null) {
+                if(!tmpArray.isEmpty()) {
                     Collections.shuffle(tmpArray,rand);
                     for(String string:tmpArray){
                         order = order + string + "//";
@@ -311,6 +309,7 @@ public class GameInstance{
         if(clients.contains(client)){
             turnStart=0;
             clients.remove(client);
+            playerIDs.remove(client);
             for(WebSocket conn:clients){
                 sendLobbyInfo(conn);
                 conn.send("UNREADY");
@@ -360,7 +359,7 @@ public class GameInstance{
         sendString = sendString + gameName + ":";
         sendString = sendString + gameID + ":";
         sendString = sendString + mapID + ":";
-        sendString = sendString + Integer.toString(clients.indexOf(client));
+        sendString = sendString + Integer.toString(playerIDs.get(client));
         client.send(sendString);
         return sendString;
     }

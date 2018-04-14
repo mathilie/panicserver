@@ -15,20 +15,25 @@ import static org.mockito.Mockito.when;
 
 @RunWith(JUnit4.class)
 public class TestGameInstance {
-    GameInstance gameInstance;
+    private GameInstance gameInstance;
+
+    private int PID1;
+    private int PID2;
 
     @Mock
-    WebSocket testSocket1;
+    private WebSocket testSocket1;
 
     @Mock
-    WebSocket testSocket2;
+    private WebSocket testSocket2;
 
 
     @Before
     public void init(){
         gameInstance = new GameInstance(1, "2","TEST_GAME");
         testSocket1 = mock(WebSocket.class);
+        PID1 = 1;
         testSocket2 = mock(WebSocket.class);
+        PID2 = 2;
     }
 
     @Test
@@ -36,7 +41,7 @@ public class TestGameInstance {
         String command = "INIT_GAME";
         String vType = "TEST_TYPE";
         String data[] = {command,vType};
-        gameInstance.addClient(testSocket1);
+        gameInstance.addClient(PID1,testSocket1);
         gameInstance.command(data,testSocket1);
         assertEquals(1,gameInstance.getVehicles().size());
         assertEquals("TEST_TYPE,V-003,RED",gameInstance.getVehicles().get(testSocket1));
@@ -49,7 +54,7 @@ public class TestGameInstance {
         String vType = "TEST_TYPE";
 
         String[] data1 = {command1,vType};
-        gameInstance.addClient(testSocket1);
+        gameInstance.addClient(PID1, testSocket1);
         gameInstance.command(data1,testSocket1);
 
         assertEquals(1,gameInstance.getClients().size());
@@ -61,12 +66,12 @@ public class TestGameInstance {
         assertEquals(0,gameInstance.getClients().size());
         assertEquals(0,gameInstance.getVehicles().size());
 
-        gameInstance.addClient(testSocket2);
+        gameInstance.addClient(PID2, testSocket2);
         gameInstance.command(data1,testSocket2);
         assertEquals(1,gameInstance.getVehicles().size());
         assertEquals("TEST_TYPE,V-005,BLUE",gameInstance.getVehicles().get(testSocket2));
 
-        gameInstance.addClient(testSocket1);
+        gameInstance.addClient(PID1, testSocket1);
         gameInstance.command(data1,testSocket1);
         assertEquals(2,gameInstance.getVehicles().size());
         assertEquals("TEST_TYPE,V-006,GREEN",gameInstance.getVehicles().get(testSocket1));
@@ -77,8 +82,8 @@ public class TestGameInstance {
         String[] data = {"INIT_GAME","TEST_TYPE"};
         String[] requestGameInfo = {"GAMEINFO"};
         String MapID = "M-001";
-        gameInstance.addClient(testSocket1);
-        gameInstance.addClient(testSocket2);
+        gameInstance.addClient(PID1, testSocket1);
+        gameInstance.addClient(PID2, testSocket2);
         gameInstance.setMapID(MapID);
         gameInstance.command(data,testSocket1);
         gameInstance.command(data,testSocket2);

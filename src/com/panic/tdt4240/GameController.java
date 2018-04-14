@@ -4,16 +4,20 @@ import org.java_websocket.WebSocket;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class GameController {
 
-    static HashMap<Integer, GameInstance> gameInstances;
-    private static final AtomicInteger count = new AtomicInteger(0);
+    private static HashMap<Integer, GameInstance> gameInstances;
+    private static final AtomicInteger gameCount = new AtomicInteger(0);
+    private static final AtomicInteger playerCount = new AtomicInteger(0);
+    private HashMap<WebSocket,Integer> playerIDs;
 
 
     public GameController(){
+        if(playerIDs==null) playerIDs = new HashMap<>();
         if(gameInstances==null) gameInstances = new HashMap<>();
     }
 
@@ -22,8 +26,7 @@ public class GameController {
         String command=data[0];
         switch (command){
             case "ENTER":
-                if(data.length>2) enterGame(data[1],conn, data[2]); // IF RECONNECTING
-                else enterGame(data[1],conn, null);
+                enterGame(data[1],conn);
                 break;
             case "CREATE":
                 createGame(conn, data[1], data[2], data[3]);
@@ -35,6 +38,14 @@ public class GameController {
                 return;
             case "TOGAME":
                 toGame(data, conn);
+                break;
+            case "GET_LOBBIES":
+                getLobbies(conn);
+                break;
+            case "CONNECTION_ID":
+                getConnection(conn);
+                //TODO: code
+                break;
             default:
                 close();
                 return;
@@ -51,17 +62,32 @@ public class GameController {
     }
 
     private void createGame(WebSocket conn, String mapID, String playerCount, String gameName) {
-        int gameID = count.incrementAndGet();
+        int gameID = gameCount.incrementAndGet();
         GameInstance game = new GameInstance(gameID, playerCount,gameName);
         game.setMapID(mapID);
-        game.addClient(null, conn);
+        game.addClient(playerIDs.get(conn), conn);
         gameInstances.put(gameID,game);
     }
 
-    private void enterGame(String gameID, WebSocket conn, String playerID) {
+    private void enterGame(String gameID, WebSocket conn) {
         int tmp = Integer.parseInt(gameID);
         GameInstance game = gameInstances.get(tmp);
-        game.addClient(playerID, conn);
+        game.addClient(playerIDs.get(conn), conn);
+    }
+    private void getLobbies(WebSocket conn){
+        String sendString = "LOBBIES:";
+        for(Map.Entry<Integer,GameInstance> gameInstance:gameInstances.entrySet()){
+            sendString = sendString + gameInstance.getKey().toString() + "&";
+        }
+        sendString = sendString.substring(0,sendString.length()-1);
+        conn.send(sendString);
+    }
+
+    private void getConnection(WebSocket conn){
+        if(!playerIDs.containsKey(conn)){
+            playerIDs.put(conn,playerCount.incrementAndGet());
+        }
+        conn.send(Integer.toString(playerIDs.get(conn)));
     }
 
     private void close(){
