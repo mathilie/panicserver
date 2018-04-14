@@ -32,6 +32,7 @@ public class GameInstance{
     private int period;
     private static int interval;
     private static final AtomicInteger count = new AtomicInteger(0);
+    private HashMap<String,String> gameData;
 
 
     public GameInstance(int gameID, String playerCount,String gameName){
@@ -56,6 +57,7 @@ public class GameInstance{
         clients = new ArrayList<>();
         vehicles = new HashMap<>();
         seed = System.currentTimeMillis();
+        gameData = new HashMap<String,String>();
 
         log = "";
         turnStart = 0;
