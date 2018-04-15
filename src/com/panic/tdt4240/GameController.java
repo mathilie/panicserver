@@ -10,7 +10,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class GameController {
 
-    private static HashMap<Integer, GameInstance> gameInstances;
+    private static HashMap<Integer, LobbyHandler> lobbies;
+    private static HashMap<Integer, GameHandler> games;
     private static final AtomicInteger gameCount = new AtomicInteger(0);
     private static final AtomicInteger playerCount = new AtomicInteger(0);
     private HashMap<WebSocket,Integer> playerIDs;
@@ -18,11 +19,13 @@ public class GameController {
 
     public GameController(){
         if(playerIDs==null) playerIDs = new HashMap<>();
-        if(gameInstances==null) gameInstances = new HashMap<>();
+        if(lobbies==null) lobbies = new HashMap<>();
+        if(games==null) games = new HashMap<>();
     }
 
     public void Sort(WebSocket conn, String[] data) {
         System.out.println("command recieved");
+        System.out.println(Arrays.toString(data));
         String command=data[0];
         switch (command){
             case "ENTER":
@@ -47,37 +50,37 @@ public class GameController {
                 //TODO: code
                 break;
             default:
-                close();
                 return;
         }
-        System.out.println("No command. Thread is closing");
-        close();
-        return;
     }
 
     private void toGame(String[] data, WebSocket conn) {
         int gameID = Integer.parseInt(data[1]);
         String[] dataToGame = Arrays.stream(data).skip(2).toArray(String[]::new); // removes switch command and gameID
-        gameInstances.get(gameID).command(dataToGame, conn);
+            getGame(gameID).command(dataToGame, conn);
     }
+
 
     private void createGame(WebSocket conn, String mapID, String playerCount, String gameName) {
         int gameID = gameCount.incrementAndGet();
-        GameInstance game = new GameInstance(gameID, playerCount,gameName);
+        LobbyHandler game = new LobbyHandler(gameID, playerCount,gameName);
         game.setMapID(mapID);
         game.addClient(playerIDs.get(conn), conn);
-        gameInstances.put(gameID,game);
+        lobbies.put(gameID,game);
+        game.sendLobbyInfo(conn);
+        System.out.println("Created Lobby: " + lobbies.get(gameID).getGameName());
     }
+
 
     private void enterGame(String gameID, WebSocket conn) {
         int tmp = Integer.parseInt(gameID);
-        GameInstance game = gameInstances.get(tmp);
-        game.addClient(playerIDs.get(conn), conn);
+        getGame(tmp).addClient(playerIDs.get(conn), conn);
     }
+
     private void getLobbies(WebSocket conn){
-        String sendString = "LOBBIES:";
-        for(Map.Entry<Integer,GameInstance> gameInstance:gameInstances.entrySet()){
-            sendString = sendString + gameInstance.getKey().toString() + "&";
+        String sendString = "GET_LOBBIES:";
+        for(Map.Entry<Integer,LobbyHandler> gameInstance:lobbies.entrySet()){
+            sendString = sendString + gameInstance.getValue().getGameName() + "," + gameInstance.getValue().getCurrentPlayerNum() + "," + gameInstance.getValue().getMaxPlayerCount() + "," +  gameInstance.getKey() + "&";
         }
         sendString = sendString.substring(0,sendString.length()-1);
         conn.send(sendString);
@@ -87,9 +90,23 @@ public class GameController {
         if(!playerIDs.containsKey(conn)){
             playerIDs.put(conn,playerCount.incrementAndGet());
         }
-        conn.send(Integer.toString(playerIDs.get(conn)));
+        conn.send("CONNECTION_ID:" + Integer.toString(playerIDs.get(conn)));
     }
 
-    private void close(){
+
+    public static void startGame(GameHandler gh, int id){
+        if(lobbies.containsKey(id)){
+            games.put(id,gh);
+            lobbies.remove(id);
+        }
+    }
+
+    //TODO add error handling if gameid doesn't exist
+    private GameInstance getGame(int gameID){
+        if(lobbies.containsKey(gameID)) {
+            return lobbies.get(gameID);
+        } else{
+            return games.get(gameID);
+        }
     }
 }
