@@ -17,8 +17,9 @@ public class LobbyHandler extends GameInstance {
     /**
      * Marks the client as ready for the game to start. If all clients have readied up, sends the "START_TURN" command to all clients
      * @param conn Client that has readied up
-     * @param VType The Vehicle type the client has selected*/
-    private void clientReady(WebSocket conn, String VType) {
+     * @param VType The Vehicle type the client has selected
+     */
+    private void clientReady(WebSocket conn,String VType) {
         String VID = "";
         String color = "";
         String vehicleString = "";
@@ -34,6 +35,8 @@ public class LobbyHandler extends GameInstance {
             colors.remove(0);
         }
         vehicleString = VType + "," + VID + "," + color;
+        vehicles.put(conn,vehicleString);
+        sendLobbyInfo(conn);
     }
 
     public void startGame(){
@@ -43,6 +46,7 @@ public class LobbyHandler extends GameInstance {
         //new Thread(timer).start();
         gameHashes = new HashMap<>();
     }
+
 
     /**
      * Sends a string containng the max number of players, the game name, the game ID, the map being used and all the vehicles curently in use. Formatted as:
@@ -55,7 +59,20 @@ public class LobbyHandler extends GameInstance {
         sendString = sendString + Integer.toString(MAX_PLAYER_COUNT) + ":";
         sendString = sendString + gameName + ":";
         sendString = sendString + gameID + ":";
-        sendString = sendString + mapID;
+        sendString = sendString + mapID + ":";
+        for(Map.Entry<WebSocket,Integer> PID:playerIDs.entrySet()){
+            sendString = sendString + PID.getValue().toString() + "&";
+        }
+        sendString = sendString.substring(0,sendString.length()-1) + ":";
+        for(WebSocket conn:clients){
+            if(playerIDs.containsKey(conn) && vehicles.containsKey(conn)){
+                sendString = sendString + vehicles.get(conn);
+            }
+            else{
+                sendString = sendString + "NONE";
+            }
+        }
+
         client.send(sendString);
         return sendString;
     }
