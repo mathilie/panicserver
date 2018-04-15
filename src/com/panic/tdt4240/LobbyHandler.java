@@ -62,6 +62,10 @@ public class LobbyHandler extends GameInstance {
         vehicleString = VType + "," + VID + "," + color;
         vehicles.put(conn,vehicleString);
         sendLobbyInfo(conn);
+        if(vehicles.size()==clients.size()){
+            GameHandler gameHandler = new GameHandler(Integer.parseInt(gameID),gameName, clients, vehicles);
+            GameController.startGame(gameHandler, Integer.parseInt(this.gameID));
+        }
     }
 
 
@@ -130,11 +134,8 @@ public class LobbyHandler extends GameInstance {
                 sendLobbyInfo(conn);
                 conn.send("UNREADY");
             }
-            if(vehicles.containsKey(client)) {
-                String color = vehicles.get(client).split(",")[2];
-                colors.add(color);
-                vehicles.remove(client);
-            }
+            vehicles.clear();
+            colors = new ArrayList<>(Arrays.asList(ALL_COLORS));
             if(clients.size()==0){
                 //TODO: terminate game
 
