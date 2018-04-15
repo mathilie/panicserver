@@ -17,6 +17,11 @@ public class TurnTimer implements Runnable {
     }
 
 
+    //TODO
+    public float getTimeLeft(){
+        return 90.0f;
+    }
+
     public boolean setTimer(long duration) {
         if(globalClock==0 && duration==0) {
             this.duration = duration;

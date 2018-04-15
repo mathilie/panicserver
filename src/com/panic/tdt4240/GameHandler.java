@@ -4,22 +4,24 @@ import org.java_websocket.WebSocket;
 
 import java.util.*;
 
-public class GameHandler extends GameInstance/* implements TurnListener*/{
-    private Timer timer;
+public class GameHandler extends GameInstance implements TurnListener{
+    private TurnTimer timer;
     private final long seed;
     private static final int TURN_DURATION = 90;
-    private HashMap<Integer, String> gameHashes;
-    private ArrayList<ArrayList<String>> moves;
+    private ArrayList<ArrayList<Card>> moves;
     private int turnStart;
     private int delay;
     private int period;
     private static int interval;
     private String log;
     private Random rand;
+    private SanityChecker sc;
 
 
-    public GameHandler(int gameID, String gameName){
-        super(gameID, gameName);
+
+
+    public GameHandler(int gameID, String gameName, ArrayList<WebSocket> clients, HashMap<WebSocket, String> v){
+        super(gameID, gameName, clients, v);
         seed = 1;
     }
 
@@ -38,9 +40,9 @@ public class GameHandler extends GameInstance/* implements TurnListener*/{
                 sendGameInfo(conn);
                 break;
             case "SEND_CARDS":
-                writeCardStringToList(data);
+                writeCardStringToList(Arrays.copyOfRange(data, 1, data.length-1));
                 break;
-            case "SEND_RUN_EFFECT_STATE":
+            case "ENTERED_RUN_EFFECT_STATE":
                 sendCardString();
                 break;
             case "BEGIN_TURN":
@@ -49,10 +51,12 @@ public class GameHandler extends GameInstance/* implements TurnListener*/{
             case "LEAVE_GAME":
                 removeClient(conn);
                 break;
+            case "RECONNECT":
+                conn.send("TO BE IMPLEMENTED LATER. SORRY!");
+                conn.close();
+                break;
             default:
         }
-
-
     }
 
     @Override
@@ -60,97 +64,42 @@ public class GameHandler extends GameInstance/* implements TurnListener*/{
 
     }
 
+
+
     /**
      * Creates a card String based on the moves that have been recieved this turn
      * @return The card string in correct order
      */
-    private String createCardString(){
-        ArrayList<Integer> priority;
-        long seed = Math.abs(rand.nextLong());
-        String order = Long.toString(seed).substring(0,5) + "//";
-
-        for(ArrayList<String> list: moves){
-            priority = new ArrayList<>();
-            ArrayList<Integer> indices = new ArrayList<>();
-
-            //Finds the priorities of the cards and adds to a new ArrayList
-            for(int i=0;i<list.size();i++){
-                String[] data = list.get(i).split("&");
-                int tmp = Integer.parseInt(data[3]);
-                priority.add(tmp);
+    public String createCardString(){
+        String returnString = "";
+        ArrayList<Card> roundOfCards = new ArrayList<Card>();
+        for(int i=0;i<3;i++){
+            for(ArrayList<Card> player:moves) {
+                if(player.size()>i) roundOfCards.add(player.get(i));
             }
-
-            //Finds the elements with the highest priority left in the Array
-            for(int j=0;j<list.size();j++) {
-                int maxPriority = -1;
-                for (int k = 0; k < list.size(); k++) {
-                    //If the current element has a larger priority than the previously discovered max, this should be the new max
-                    if (priority.get(k) > maxPriority) {
-                        indices.clear();
-                        indices.add(k);
-                        maxPriority = priority.get(k);
-                        //If the element has the same priority as the currently discovered, it should be included as well
-                    } else if (priority.get(k) == maxPriority) {
-                        indices.add(k);
-                    }
-                }
-                ArrayList<String> tmpArray=new ArrayList<>();
-
-                //Get out the strings with the highest priority
-                for(Integer integer:indices){
-                    String[] tmpData = list.get(integer).split("&");
-                    String tmpString = tmpData[0] + "&" + tmpData[1] + "&" + tmpData[2];
-                    tmpArray.add(tmpString);
-                    priority.set(integer,-2);
-                }
-
-                //randomize the order of similar priorities and write to string
-                if(!tmpArray.isEmpty()) {
-                    Collections.shuffle(tmpArray,rand);
-                    for(String string:tmpArray){
-                        order = order + string + "//";
-                    }
-                }
-                tmpArray.clear();
-                indices.clear();
-            }
+            Collections.shuffle(roundOfCards);
+            Collections.sort(roundOfCards);
+            for(Card nextCard:roundOfCards) returnString=returnString+nextCard+"//";
+            roundOfCards.clear();
         }
-        order = order + "TURNEND//";
-        log = log + order;
-        return order;
+        returnString=returnString+"TURNEND//";
+        log = log + returnString;
+        return returnString;
     }
-
 
     /**
      * Takes the card Array input and puts cards into separate arrays to maintain order
      * @param cardString
      */
     private void writeCardStringToList(String[] cardString){
-        for (int i=1 ; i<cardString.length ; i++) {
-            if (moves.size() <= i) {
-                moves.add(new ArrayList<>());
-            }
-            moves.get(i).add(cardString[i]);
+        ArrayList<Card> playerCards = new ArrayList<Card>();
+        for (String card: cardString) playerCards.add(new Card(card));
+        moves.add(playerCards);
+        numRecieved++;
+        if(numRecieved==clients.size()){
+            for(WebSocket client:clients) client.send("TURN_END");
+            numRecieved=0;
         }
-    }
-
-    /**
-     * Sends a request to all clients that forces them to send their currently selected cards.
-     */
-    private void forceMoves(){
-        //TODO: code
-    }
-
-    private int setInterval(){
-        if(interval==1){
-            forceMoves();
-            interval = TURN_DURATION;
-            timer.cancel();
-        }
-        else{
-            interval--;
-        }
-        return interval;
     }
 
 
@@ -167,6 +116,7 @@ public class GameHandler extends GameInstance/* implements TurnListener*/{
             }
             moves.clear();
         }
+        numRecieved=0;
     }
 
     /**
@@ -177,24 +127,8 @@ public class GameHandler extends GameInstance/* implements TurnListener*/{
         client.send("GET_LOG:" + log);
     }
 
-    //TODO What's this what's this?
-
-/*    public void addHash(WebSocket client, String hash){
-        gameHashes.put(clients.indexOf(client), hash);
-        if(gameHashes.size()==clients.size()){
 
 
-        vehicles.put(client,vehicleString);
-        if(turnStart==clients.size()){
-            turnStart=0;
-            for(WebSocket client:clients){
-                if(client!=null) {
-                    client.send("GAME_START");
-                }
-            }
-
-        }
-    }*/
 
 
     /**
@@ -204,35 +138,30 @@ public class GameHandler extends GameInstance/* implements TurnListener*/{
         turnStart++;
         if (turnStart == clients.size()) {
             for(WebSocket client:clients){
-                client.send("BEGIN_TURN");
+                client.send("BEGIN_TURN:"+timer.getTimeLeft());
             }
-            timer.scheduleAtFixedRate(new TimerTask() {
+            //TODO start timer
+            /*timer.scheduleAtFixedRate(new TimerTask() {
                 @Override
                 public void run() {
                     System.out.println(setInterval());
                 }
-            }, delay, period);
+            }, delay, period);*/
         }
     }
-/*
 
 
-    //TODO: Java timer vs self made timer
     //Overrides from timer
+    /**
+     * Sends a request to all clients that forces them to send their currently selected cards.
+     */
     @Override
     public void turnFinished() {
-        System.out.println("Hello");
+        for(WebSocket client:clients) client.send("TURN_END");
     }
 
-    @Override
-    public void pauseOn() {
-        System.out.println("Hello");
-    }
 
-    @Override
-    public void pauseOff() {
-        System.out.println("Hello");
-    }*/
+
     /**
      * Sends the vehicle ID to the client requesting it. If no vehicle ID is set, "NONE" is sent. Format: "ALL_VEHICLES:MY_VEHICLE:MAPID
      * @param client The client requesting a vehicle ID.
@@ -247,16 +176,68 @@ public class GameHandler extends GameInstance/* implements TurnListener*/{
         String myVID = vehicles.get(client);
         myVID = myVID.split(",")[1];
         sendString = sendString + myVID;
+        sendString= sendString+":"+log;
         client.send(sendString);
         return sendString;
     }
+
+
+    //TODO make game out of lobby
     public void startGame(){
         for(WebSocket client: clients) client.send("START");
         //timer = new TurnTimer();
         //timer.setListener(this);
         //new Thread(timer).start();
-        gameHashes = new HashMap<>();
     }
 
+    protected class Card implements Comparable<Card>{
+        private String cardString;
+        private int priority;
+        protected Card(String cardString){
+            this.cardString = cardString;
+            priority=Integer.parseInt(cardString.split("&")[3]);
+        }
+        @Override
+        public String toString(){
+            return cardString;
+        }
+        @Override
+        public int compareTo(Card o) {
+            if(o==null) return 1;
+            return o.priority-this.priority; //This is inverted so that the highest priority is returned as the lowest card to function in the sort method.
+        }
+    }
+    class SanityChecker {
+        HashMap<Integer, String> gameHashes = new HashMap<>();
 
+        public void addHash(WebSocket client, String hash) {
+            gameHashes.put(clients.indexOf(client), hash);
+            if (gameHashes.size() == clients.size()) {
+
+                if (turnStart == clients.size()) {
+                    turnStart = 0;
+                    for (WebSocket clientt : clients) {
+                        if (client != null) {
+                            client.send("GAME_START");
+                        }
+                    }
+
+                }
+            }
+        }
+    }
+
+    //NOT TO BE IMPLEMENTED DUE TO TIME CONSTRAIN
+
+    private void writeIncrementToFile(){
+        //Writes current increment to file in case of server crash.
+    }
+
+    private void writeLog(String s){
+        //Write moves to log, to make reconnecting possible.
+    }
+
+    private void reconect(int playerID){
+
+    }
 }
