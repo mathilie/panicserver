@@ -5,17 +5,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.mockito.Matchers;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @RunWith(JUnit4.class)
-public class TestGameInstance {
-    private GameInstance gameInstance;
+public class TestLobbyHandler {
+    private LobbyHandler gameInstance;
 
     private int PID1;
     private int PID2;
@@ -29,7 +26,7 @@ public class TestGameInstance {
 
     @Before
     public void init(){
-        gameInstance = new GameInstance(1, "2","TEST_GAME");
+        gameInstance = new LobbyHandler(1, "2","TEST_GAME");
         testSocket1 = mock(WebSocket.class);
         PID1 = 1;
         testSocket2 = mock(WebSocket.class);
@@ -87,8 +84,8 @@ public class TestGameInstance {
         gameInstance.setMapID(MapID);
         gameInstance.command(data,testSocket1);
         gameInstance.command(data,testSocket2);
-        String returnString = gameInstance.sendGameInfo(testSocket1);
-        assertEquals("GAMEINFO:TEST_TYPE,V-002,BLUE&TEST_TYPE,V-001,RED:M-001:V-001",returnString);
+        String returnString = gameInstance.sendLobbyInfo(testSocket1);
+        assertEquals("LOBBY_INFO:4:TEST_GAME:1:M-001:2&1:TEST_TYPE,V-002,RED&TEST_TYPE,V-001,BLUE",returnString);
 
     }
 
