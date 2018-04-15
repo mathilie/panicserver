@@ -2,10 +2,35 @@ package com.panic.tdt4240;
 
 import org.java_websocket.WebSocket;
 
-import java.util.HashMap;
+import java.util.*;
 
 public class LobbyHandler extends GameInstance {
     private HashMap<String,String> gameData;
+    private static final String[] ALL_COLORS = {"RED","BLUE","GREEN","YELLOW"};
+    private ArrayList<String> colors;
+    static final int MAX_PLAYER_COUNT = 4;
+
+    public LobbyHandler(int gameID, String playerCount,String gameName){
+        super(gameID, gameName);
+        int playerNum = Integer.parseInt(playerCount);
+        playerIDs = new HashMap<>();
+        if(playerNum<MAX_PLAYER_COUNT) {
+            this.playerCount = playerNum;
+        }
+        else{
+            this.playerCount = MAX_PLAYER_COUNT;
+        }
+        this.gameID = Integer.toString(gameID);
+        this.gameName = gameName;
+
+        colors = new ArrayList<>(Arrays.asList(ALL_COLORS));
+        clients = new ArrayList<>();
+        vehicles = new HashMap<>();
+        gameData = new HashMap<String,String>();
+        turnStart = 0;
+        numRecieved = 0;
+    }
+
     /**
      * Defines which map will be used in the game instance
      * @param ID The map ID
@@ -39,14 +64,28 @@ public class LobbyHandler extends GameInstance {
         sendLobbyInfo(conn);
     }
 
-    public void startGame(){
-        for(WebSocket client: clients) client.send("START");
-        //timer = new TurnTimer();
-        //timer.setListener(this);
-        //new Thread(timer).start();
-        gameHashes = new HashMap<>();
-    }
 
+    /**
+     * The method used to decide which methods to be run
+     * @param data The given input for the methods. The first element is always the command string which decides method call
+     * @param conn The client sending the request
+     */
+    @Override
+    public void command(String[] data, WebSocket conn){
+        switch (data[0]) {
+
+            case "INIT_GAME":
+                clientReady(conn,data[1]);
+                break;
+            case "LEAVE_GAME":
+                removeClient(conn);
+                break;
+            case "GET_LOBBY_INFO":
+                sendLobbyInfo(conn);
+                break;
+            default:
+        }
+    }
 
     /**
      * Sends a string containng the max number of players, the game name, the game ID, the map being used and all the vehicles curently in use. Formatted as:
@@ -77,4 +116,32 @@ public class LobbyHandler extends GameInstance {
         return sendString;
     }
 
+    /**
+     * Removes the client from the game if it is part of it. If the player previously was readied up, reduces the counter for starting game
+     * @param client The client to be removed
+     */
+    @Override
+    public void removeClient(WebSocket client){
+        if(clients.contains(client)){
+            turnStart=0;
+            clients.remove(client);
+            playerIDs.remove(client);
+            for(WebSocket conn:clients){
+                sendLobbyInfo(conn);
+                conn.send("UNREADY");
+            }
+            if(vehicles.containsKey(client)) {
+                String color = vehicles.get(client).split(",")[2];
+                colors.add(color);
+                vehicles.remove(client);
+            }
+            if(clients.size()==0){
+                //TODO: terminate game
+
+            }
+        }
+        else{
+            System.out.println("Player not in game.");
+        }
+    }
 }

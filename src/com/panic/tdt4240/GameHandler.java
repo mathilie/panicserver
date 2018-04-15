@@ -4,7 +4,7 @@ import org.java_websocket.WebSocket;
 
 import java.util.*;
 
-public class GameHandler extends GameInstance {
+public class GameHandler extends GameInstance implements TurnListener{
     private Timer timer;
     private final long seed;
     private static final int TURN_DURATION = 90;
@@ -16,6 +16,49 @@ public class GameHandler extends GameInstance {
     private static int interval;
     private String log;
     private Random rand;
+
+
+    public GameHandler(int gameID, String gameName){
+        super(gameID, gameName);
+        seed = 1;
+    }
+
+    /**
+     * The method used to decide which methods to be run
+     * @param data The given input for the methods. The first element is always the command string which decides method call
+     * @param conn The client sending the request
+     */
+    @Override
+    public void command(String[] data, WebSocket conn){
+        switch (data[0]) {
+            case "GET_LOG":
+                getLog(conn);
+                break;
+            case "GAME_INFO":
+                sendGameInfo(conn);
+                break;
+            case "SEND_CARDS":
+                writeCardStringToList(data);
+                break;
+            case "SEND_RUN_EFFECT_STATE":
+                sendCardString();
+                break;
+            case "BEGIN_TURN":
+                beginTurn();
+                break;
+            case "LEAVE_GAME":
+                removeClient(conn);
+                break;
+            default:
+        }
+
+
+    }
+
+    @Override
+    public void removeClient(WebSocket ws) {
+
+    }
 
     /**
      * Creates a card String based on the moves that have been recieved this turn
@@ -206,6 +249,13 @@ public class GameHandler extends GameInstance {
         sendString = sendString + myVID;
         client.send(sendString);
         return sendString;
+    }
+    public void startGame(){
+        for(WebSocket client: clients) client.send("START");
+        //timer = new TurnTimer();
+        //timer.setListener(this);
+        //new Thread(timer).start();
+        gameHashes = new HashMap<>();
     }
 
 
