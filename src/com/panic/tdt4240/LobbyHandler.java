@@ -62,6 +62,14 @@ public class LobbyHandler extends GameInstance {
         vehicleString = VType + "," + VID + "," + color;
         vehicles.put(conn,vehicleString);
         sendLobbyInfo(conn);
+        if(turnStart>=clients.size()) startGame();
+    }
+
+    private void startGame() {
+        for(WebSocket client:clients)
+            client.send("GAME_START");
+        GameHandler game = new GameHandler(Integer.parseInt(gameID), gameName, clients, vehicles);
+        GameController.startGame(game, Integer.parseInt(gameID));
     }
 
 
@@ -73,8 +81,7 @@ public class LobbyHandler extends GameInstance {
     @Override
     public void command(String[] data, WebSocket conn){
         switch (data[0]) {
-
-            case "INIT_GAME":
+            case "VEHICLE_SET":
                 clientReady(conn,data[1]);
                 break;
             case "LEAVE_GAME":
@@ -128,7 +135,7 @@ public class LobbyHandler extends GameInstance {
             playerIDs.remove(client);
             for(WebSocket conn:clients){
                 sendLobbyInfo(conn);
-                conn.send("UNREADY");
+                //conn.send("UNREADY");
             }
             if(vehicles.containsKey(client)) {
                 String color = vehicles.get(client).split(",")[2];
