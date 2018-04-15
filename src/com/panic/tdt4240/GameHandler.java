@@ -4,7 +4,7 @@ import org.java_websocket.WebSocket;
 
 import java.util.*;
 
-public class GameHandler extends GameInstance implements TurnListener{
+public class GameHandler extends GameInstance/* implements TurnListener*/{
     private Timer timer;
     private final long seed;
     private static final int TURN_DURATION = 90;
@@ -214,25 +214,25 @@ public class GameHandler extends GameInstance implements TurnListener{
             }, delay, period);
         }
     }
-
+/*
 
 
     //TODO: Java timer vs self made timer
     //Overrides from timer
     @Override
     public void turnFinished() {
-
+        System.out.println("Hello");
     }
 
     @Override
     public void pauseOn() {
-
+        System.out.println("Hello");
     }
 
     @Override
     public void pauseOff() {
-
-    }
+        System.out.println("Hello");
+    }*/
     /**
      * Sends the vehicle ID to the client requesting it. If no vehicle ID is set, "NONE" is sent. Format: "ALL_VEHICLES:MY_VEHICLE:MAPID
      * @param client The client requesting a vehicle ID.
