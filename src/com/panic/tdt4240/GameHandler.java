@@ -15,11 +15,11 @@ public class GameHandler extends GameInstance implements TurnListener{
     private Thread timerThread;
 
 
-
-
     public GameHandler(int gameID, String gameName, ArrayList<WebSocket> clients, HashMap<WebSocket, String> v){
         super(gameID, gameName, clients, v);
         seed = 1;
+        super.clients = clients;
+        super.vehicles = vehicles;
     }
 
     /**
