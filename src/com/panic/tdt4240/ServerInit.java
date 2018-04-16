@@ -26,6 +26,7 @@ public class ServerInit extends WebSocketServer {
 
     @Override
     public void onMessage(WebSocket conn, String message) {
+        conn.send("OKAY");
         String[] data = message.split("//");
         c.Sort(conn,data);
     }
