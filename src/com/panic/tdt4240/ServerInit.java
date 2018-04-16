@@ -20,13 +20,12 @@ public class ServerInit extends WebSocketServer {
         int port = Integer.parseInt(args[0]);
 
         WebSocketServer server = new ServerInit(new InetSocketAddress(host, port));
-        server.setConnectionLostTimeout(0);
+        server.setConnectionLostTimeout(15);
         server.run();
     }
 
     @Override
     public void onMessage(WebSocket conn, String message) {
-        conn.send("OKAY");
         String[] data = message.split("//");
         c.Sort(conn,data);
     }
