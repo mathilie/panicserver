@@ -102,7 +102,7 @@ public class LobbyHandler extends GameInstance {
      */
     public String sendLobbyInfo(WebSocket client){
         String sendString = "LOBBY_INFO:";
-        sendString = sendString + Integer.toString(MAX_PLAYER_COUNT) + ":";
+        sendString = sendString + Integer.toString(playerCount) + ":";
         sendString = sendString + gameName + ":";
         sendString = sendString + gameID + ":";
         sendString = sendString + mapID + ":";
