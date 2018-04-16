@@ -109,4 +109,8 @@ public class GameController {
             return games.get(gameID);
         }
     }
+
+    public void disconnected(WebSocket client){
+        //for(GameInstance client:getLobbies();)
+    }
 }
