@@ -19,10 +19,11 @@ public class TurnTimer implements Runnable {
 
     //TODO
     public float getTimeLeft(){
-        return 90.0f;
+        return (duration-globalClock)/1000;
     }
 
     public boolean setTimer(long duration) {
+        reset();
         if(globalClock==0 && duration==0) {
             this.duration = duration;
             pause = false;
@@ -32,7 +33,7 @@ public class TurnTimer implements Runnable {
     }
 
     public boolean setTimer() {
-        return setTimer(60000);
+        return setTimer(95000);
     }
 
     public boolean reset(){
