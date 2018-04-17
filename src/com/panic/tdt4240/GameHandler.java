@@ -17,6 +17,7 @@ public class GameHandler extends GameInstance implements TurnListener{
 
     public GameHandler(int gameID, String gameName, ArrayList<WebSocket> clients, HashMap<WebSocket, String> v){
         super(gameID, gameName, clients, v);
+        rand = new Random();
         log = "";
         seed = 1;
         super.clients = clients;
@@ -173,8 +174,9 @@ public class GameHandler extends GameInstance implements TurnListener{
         sendString = sendString + mapID + ":";
         String myVID = vehicles.get(client);
         myVID = myVID.split(",")[1];
-        sendString = sendString + myVID;
-        if(log.isEmpty()) {
+        sendString = sendString + myVID + ":";
+        sendString = sendString + Long.toString(rand.nextLong()).substring(0,5);
+        if(!log.isEmpty()) {
             sendString = sendString + ":" + log;
         }
         client.send(sendString);
