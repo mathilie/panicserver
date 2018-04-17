@@ -17,6 +17,7 @@ public class GameHandler extends GameInstance implements TurnListener{
 
     public GameHandler(int gameID, String gameName, ArrayList<WebSocket> clients, HashMap<WebSocket, String> v){
         super(gameID, gameName, clients, v);
+        moves = new ArrayList<>();
         rand = new Random();
         log = "";
         super.clients = clients;
