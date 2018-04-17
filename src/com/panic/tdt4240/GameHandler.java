@@ -21,6 +21,7 @@ public class GameHandler extends GameInstance implements TurnListener{
         rand = new Random();
         log = "";
         super.clients = clients;
+        timer = new TurnTimer();
         updateSeed();
     }
 
@@ -96,7 +97,6 @@ public class GameHandler extends GameInstance implements TurnListener{
     private void writeCardStringToList(String[] cardString){
         ArrayList<Card> playerCards = new ArrayList<Card>();
         for (String card: cardString) playerCards.add(new Card(card));
-        System.out.println("Alive and good");
         moves.add(playerCards);
         numRecieved++;
         System.out.println("numRecieved: " + numRecieved + ", clients.size = " + clients.size());
