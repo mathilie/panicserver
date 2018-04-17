@@ -20,13 +20,4 @@ public class StateHandeler implements TurnListener {
 
     }
 
-    @Override
-    public void pauseOn() {
-
-    }
-
-    @Override
-    public void pauseOff() {
-
-    }
 }

@@ -30,6 +30,18 @@ public abstract class GameInstance{
         numRecieved = 0;
     }
 
+    public GameInstance(int gameID, String gameName, ArrayList<WebSocket> cli, HashMap<WebSocket,String> v){
+        playerIDs = new HashMap<>();
+        this.gameID = Integer.toString(gameID);
+        this.gameName = gameName;
+        clients = new ArrayList<>();
+        vehicles = new HashMap<>();
+        turnStart = 0;
+        numRecieved = 0;
+        clients = cli;
+        vehicles = v;
+    }
+
     /**
      * Adds a client to the list of clients if there are not more than the max number of players
      * @param client The client requesting to join the game
@@ -38,9 +50,11 @@ public abstract class GameInstance{
         if(clients.size()<=playerCount) {
             clients.add(client);
             playerIDs.put(client,playerID);
+            client.send("LOBBY_SUCCESSFUL:"+gameID);
         }
         else{
             System.out.println("Attempted to join a full game");
+            client.send("LOBBY_FAILED");
         }
     }
 
@@ -74,4 +88,12 @@ public abstract class GameInstance{
     public int getMaxPlayerCount() {
         return playerCount;
     }
+
+
+    //TODO
+    public void disconnect(){
+        playerCount--;
+    }
+
+
 }

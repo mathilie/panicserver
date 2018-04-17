@@ -7,6 +7,4 @@ package com.panic.tdt4240;
 public interface TurnListener {
 
     public void turnFinished();
-    public void pauseOn();
-    public void pauseOff();
 }
