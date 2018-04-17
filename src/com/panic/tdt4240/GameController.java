@@ -94,8 +94,9 @@ public class GameController {
     }
 
 
-    public static void startGame(GameHandler gh, int id){
+    public static void startGame(GameHandler gh, int id, String mapID){
         if(lobbies.containsKey(id)){
+            gh.mapID=mapID;
             games.put(id,gh);
             lobbies.remove(id);
         }

@@ -69,7 +69,7 @@ public class LobbyHandler extends GameInstance {
         for(WebSocket client:clients)
             client.send("GAME_START");
         GameHandler game = new GameHandler(Integer.parseInt(gameID), gameName, clients, vehicles);
-        GameController.startGame(game, Integer.parseInt(gameID));
+        GameController.startGame(game, Integer.parseInt(gameID), mapID);
 
     }
 
