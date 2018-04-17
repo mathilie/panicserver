@@ -18,9 +18,11 @@ public class GameHandler extends GameInstance/* implements TurnListener*/{
     private Random rand;
 
 
-    public GameHandler(int gameID, String gameName){
+    public GameHandler(int gameID, String gameName, ArrayList<WebSocket> clients, HashMap<WebSocket, String> vehicles){
         super(gameID, gameName);
         seed = 1;
+        super.clients = clients;
+        super.vehicles = vehicles;
     }
 
     /**
