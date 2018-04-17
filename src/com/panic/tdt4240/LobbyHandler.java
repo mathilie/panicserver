@@ -117,6 +117,7 @@ public class LobbyHandler extends GameInstance {
         }
 
         client.send(sendString);
+        System.out.println(sendString);
         return sendString;
     }
 
