@@ -5,7 +5,6 @@ import org.java_websocket.WebSocket;
 import java.util.*;
 
 public class LobbyHandler extends GameInstance {
-    private HashMap<String,String> gameData;
     private static final String[] ALL_COLORS = {"RED","BLUE","GREEN","YELLOW"};
     private ArrayList<String> colors;
     static final int MAX_PLAYER_COUNT = 4;
@@ -23,10 +22,9 @@ public class LobbyHandler extends GameInstance {
         this.gameID = Integer.toString(gameID);
         this.gameName = gameName;
 
-        colors = new ArrayList<>(Arrays.asList(ALL_COLORS));
-        clients = new ArrayList<>();
-        vehicles = new HashMap<>();
-        gameData = new HashMap<String,String>();
+        colors = new ArrayList<>(Arrays.asList(ALL_COLORS)); //clientReady, remove client
+        clients = new ArrayList<>(); //used in start game, sendLobbyInfo, removeClient
+        vehicles = new HashMap<>();  //used in sendLobbyInfo, removeClient, clientReady
         turnStart = 0;
         numRecieved = 0;
     }
@@ -43,7 +41,7 @@ public class LobbyHandler extends GameInstance {
      * Marks the client as ready for the game to start. If all clients have readied up, sends the "START_TURN" command to all clients
      * @param conn Client that has readied up
      * @param VType The Vehicle type the client has selected
-     */
+     *///TODO Vehicle and clients colors?
     private void clientReady(WebSocket conn,String VType) {
         String VID = "";
         String color = "";
@@ -65,12 +63,12 @@ public class LobbyHandler extends GameInstance {
         if(turnStart>=clients.size()) startGame();
     }
 
+    //TODO remove Client, switch vehicle and clients
     private void startGame() {
         for(WebSocket client:clients)
             client.send("GAME_START");
         GameHandler game = new GameHandler(Integer.parseInt(gameID), gameName, clients, vehicles);
         GameController.startGame(game, Integer.parseInt(gameID));
-
     }
 
 
@@ -100,7 +98,7 @@ public class LobbyHandler extends GameInstance {
      * "LOBBY_INFO:MAX_PLAYERS:GAME_NAME:GAME_ID:MAP_ID"
      * @param client
      * @return
-     */
+     *///TODO playerIDs
     public String sendLobbyInfo(WebSocket client){
         String sendString = "LOBBY_INFO:";
         sendString = sendString + Integer.toString(playerCount) + ":";
@@ -118,7 +116,9 @@ public class LobbyHandler extends GameInstance {
             else{
                 sendString = sendString + "NONE";
             }
+            sendString = sendString + "&";
         }
+        sendString = sendString.substring(0,sendString.length()-2); //Removes final &
 
         client.send(sendString);
         return sendString;
@@ -127,7 +127,7 @@ public class LobbyHandler extends GameInstance {
     /**
      * Removes the client from the game if it is part of it. If the player previously was readied up, reduces the counter for starting game
      * @param client The client to be removed
-     */
+     *///TODO clients
     @Override
     public void removeClient(WebSocket client){
         if(clients.contains(client)){
