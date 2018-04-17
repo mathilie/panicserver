@@ -21,7 +21,6 @@ public class GameHandler extends GameInstance implements TurnListener{
         log = "";
         seed = 1;
         super.clients = clients;
-        super.vehicles = vehicles;
     }
 
     /**
@@ -98,7 +97,7 @@ public class GameHandler extends GameInstance implements TurnListener{
         for (String card: cardString) playerCards.add(new Card(card));
         moves.add(playerCards);
         numRecieved++;
-        if(numRecieved==clients.size()){
+        if(numRecieved==vehicles.size()){
             for(WebSocket client:clients) client.send("TURN_END");
             numRecieved=0;
         }
