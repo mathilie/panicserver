@@ -93,9 +93,9 @@ public class GameHandler extends GameInstance implements TurnListener{
      * @param cardString
      */
     private void writeCardStringToList(String[] cardString){
-        System.out.println("Alive and good");
         ArrayList<Card> playerCards = new ArrayList<Card>();
         for (String card: cardString) playerCards.add(new Card(card));
+        System.out.println("Alive and good");
         moves.add(playerCards);
         numRecieved++;
         System.out.println("numRecieved: " + numRecieved + ", clients.size = " + clients.size());
