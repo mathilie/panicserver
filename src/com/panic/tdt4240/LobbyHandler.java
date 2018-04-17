@@ -113,10 +113,10 @@ public class LobbyHandler extends GameInstance {
         sendString = sendString.substring(0,sendString.length()-1) + ":";
         for(WebSocket conn:clients){
             if(playerIDs.containsKey(conn) && vehicles.containsKey(conn)){
-                sendString = sendString + vehicles.get(conn);
+                sendString = sendString + vehicles.get(conn) + "&";
             }
             else{
-                sendString = sendString + "NONE";
+                sendString = sendString + "NONE&";
             }
         }
 
