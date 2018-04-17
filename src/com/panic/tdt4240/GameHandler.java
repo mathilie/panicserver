@@ -6,7 +6,7 @@ import java.util.*;
 
 public class GameHandler extends GameInstance implements TurnListener{
     private TurnTimer timer;
-    private final long seed;
+    private long seed;
     private ArrayList<ArrayList<Card>> moves;
     private int turnStart;
     private String log;
@@ -19,8 +19,8 @@ public class GameHandler extends GameInstance implements TurnListener{
         super(gameID, gameName, clients, v);
         rand = new Random();
         log = "";
-        seed = 1;
         super.clients = clients;
+        updateSeed();
     }
 
     /**
@@ -174,13 +174,20 @@ public class GameHandler extends GameInstance implements TurnListener{
         String myVID = vehicles.get(client);
         myVID = myVID.split(",")[1];
         sendString = sendString + myVID + ":";
-        sendString = sendString + Long.toString(rand.nextLong()).substring(0,5);
+        sendString = sendString + Long.toString(getSeed()).substring(0,5);
         if(!log.isEmpty()) {
             sendString = sendString + ":" + log;
         }
         client.send(sendString);
         System.out.println(sendString);
         return sendString;
+    }
+
+    private long getSeed() {
+        return seed;
+    }
+    private void updateSeed(){
+        seed = rand.nextLong();
     }
 
 

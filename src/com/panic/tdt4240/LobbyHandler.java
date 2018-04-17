@@ -119,7 +119,7 @@ public class LobbyHandler extends GameInstance {
                 sendString = sendString + "NONE&";
             }
         }
-
+        sendString=sendString.substring(0,sendString.length()-1);
         client.send(sendString);
         System.out.println(sendString);
         return sendString;
