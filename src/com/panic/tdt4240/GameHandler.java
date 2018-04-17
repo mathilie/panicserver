@@ -164,7 +164,7 @@ public class GameHandler extends GameInstance implements TurnListener{
      * @param client The client requesting a vehicle ID.
      */
     public String sendGameInfo(WebSocket client){
-        String sendString = "GAMEINFO:";
+        String sendString = "GAME_INFO:";
         for(Map.Entry<WebSocket,String> vehicle:vehicles.entrySet()){
             sendString = sendString + vehicle.getValue() + "&";
         }
@@ -175,6 +175,7 @@ public class GameHandler extends GameInstance implements TurnListener{
         sendString = sendString + myVID;
         sendString= sendString+":"+log;
         client.send(sendString);
+        System.out.println(sendString);
         return sendString;
     }
 
