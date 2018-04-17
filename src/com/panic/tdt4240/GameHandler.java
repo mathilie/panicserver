@@ -97,6 +97,7 @@ public class GameHandler extends GameInstance implements TurnListener{
         for (String card: cardString) playerCards.add(new Card(card));
         moves.add(playerCards);
         numRecieved++;
+        System.out.println("numRecieved: " + numRecieved + ", clients.size = " + clients.size());
         if(numRecieved==vehicles.size()){
             for(WebSocket client:clients) client.send("TURN_END");
             numRecieved=0;
@@ -118,7 +119,6 @@ public class GameHandler extends GameInstance implements TurnListener{
             }
             moves.clear();
         }
-        numRecieved=0;
     }
 
     /**

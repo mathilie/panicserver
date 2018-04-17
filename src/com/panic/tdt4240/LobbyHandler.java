@@ -28,7 +28,6 @@ public class LobbyHandler extends GameInstance {
         vehicles = new HashMap<>();
         gameData = new HashMap<String,String>();
         turnStart = 0;
-        numRecieved = 0;
     }
 
     /**
