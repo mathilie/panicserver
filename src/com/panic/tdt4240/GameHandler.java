@@ -20,6 +20,7 @@ public class GameHandler extends GameInstance implements TurnListener{
         seed = 1;
         super.clients = clients;
         super.vehicles = vehicles;
+        moves = new ArrayList<>();
     }
 
     /**
@@ -37,7 +38,7 @@ public class GameHandler extends GameInstance implements TurnListener{
                 sendGameInfo(conn);
                 break;
             case "SEND_CARDS":
-                writeCardStringToList(Arrays.copyOfRange(data, 1, data.length-1));
+                writeCardStringToList(Arrays.stream(data).skip(1).toArray(String[]::new));
                 break;
             case "ENTERED_RUN_EFFECT_STATE":
                 sendCardString();
