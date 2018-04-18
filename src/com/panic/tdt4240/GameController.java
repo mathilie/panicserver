@@ -2,9 +2,13 @@ package com.panic.tdt4240;
 
 import org.java_websocket.WebSocket;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
@@ -46,7 +50,7 @@ public class GameController {
                 getLobbies(conn);
                 break;
             case "CONNECTION_ID":
-                getConnection(conn);
+                getConnection(conn, data[1]);
                 //TODO: code
                 break;
             default:
@@ -61,6 +65,7 @@ public class GameController {
     }
 
 
+    //Todo
     private void createGame(WebSocket conn, String mapID, String playerCount, String gameName) {
         int gameID = gameCount.incrementAndGet();
         LobbyHandler lobby = new LobbyHandler(gameID, playerCount,gameName);
@@ -86,9 +91,15 @@ public class GameController {
         conn.send(sendString);
     }
 
-    private void getConnection(WebSocket conn){
-        if(!playerIDs.containsKey(conn)){
+    private void getConnection(WebSocket conn, String ID){
+        if(!playerIDs.containsValue(Integer.parseInt(ID))){
             playerIDs.put(conn,playerCount.incrementAndGet());
+        } else { //TODO fix reconnecting!!!
+            WebSocket oldConn = getKeysByValue(playerIDs, Integer.parseInt(ID));
+            playerIDs.remove(oldConn);
+            playerIDs.put(conn, Integer.parseInt(ID));
+            for(GameInstance game:lobbies.values()) game.reconnect(Integer.parseInt(ID), conn, oldConn);
+            for(GameInstance game:games.values()) game.reconnect(Integer.parseInt(ID), conn, oldConn);
         }
         conn.send("CONNECTION_ID:" + Integer.toString(playerIDs.get(conn)));
     }
@@ -114,4 +125,23 @@ public class GameController {
     public void disconnected(WebSocket client){
         //for(GameInstance client:getLobbies();)
     }
+
+    //MAGIC!
+    public static <T, E> T getKeysByValue(Map<T, E> map, E value) {
+        for (Map.Entry<T, E> entry : map.entrySet()) {
+            if (Objects.equals(value, entry.getValue())) {
+                return entry.getKey();
+            }
+        }
+        return null;
+    }
+
+    public void writeIncrementTOFile() throws IOException {
+        String str = gameCount.toString();
+        BufferedWriter writer = new BufferedWriter(new FileWriter("increments.com"));
+        writer.write(str);
+        writer.close();
+    }
+
+
 }

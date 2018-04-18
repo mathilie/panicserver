@@ -23,6 +23,8 @@ public class GameHandler extends GameInstance implements TurnListener{
         super.clients = clients;
         timer = new TurnTimer();
         updateSeed();
+        super.vehicles = vehicles;
+        moves = new ArrayList<>();
     }
 
     /**
