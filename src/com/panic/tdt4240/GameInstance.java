@@ -47,6 +47,7 @@ public abstract class GameInstance{
      * @param client The client requesting to join the game
      */
     protected void addClient(int playerID, WebSocket client){
+        if(clients.size()<playerCount) {
         if(clients.size()<playerCount&&!clients.contains(client)) {
             clients.add(client);
             playerIDs.put(client,playerID);

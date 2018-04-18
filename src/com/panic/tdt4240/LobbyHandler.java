@@ -26,7 +26,6 @@ public class LobbyHandler extends GameInstance {
         clients = new ArrayList<>(); //used in start game, sendLobbyInfo, removeClient
         vehicles = new HashMap<>();  //used in sendLobbyInfo, removeClient, clientReady
         turnStart = 0;
-        numRecieved = 0;
     }
 
     /**
@@ -68,7 +67,9 @@ public class LobbyHandler extends GameInstance {
         for(WebSocket client:clients)
             client.send("GAME_START");
         GameHandler game = new GameHandler(Integer.parseInt(gameID), gameName, clients, vehicles);
-        GameController.startGame(game, Integer.parseInt(gameID));
+
+        GameController.startGame(game, Integer.parseInt(gameID), mapID);
+
     }
 
 
@@ -111,16 +112,17 @@ public class LobbyHandler extends GameInstance {
         sendString = sendString.substring(0,sendString.length()-1) + ":";
         for(WebSocket conn:clients){
             if(playerIDs.containsKey(conn) && vehicles.containsKey(conn)){
-                sendString = sendString + vehicles.get(conn);
+                sendString = sendString + vehicles.get(conn) + "&";
             }
             else{
-                sendString = sendString + "NONE";
+                sendString = sendString + "NONE&";
             }
             sendString = sendString + "&";
         }
-        sendString = sendString.substring(0,sendString.length()-2); //Removes final &
 
+        sendString=sendString.substring(0,sendString.length()-1);
         client.send(sendString);
+        System.out.println(sendString);
         return sendString;
     }
 

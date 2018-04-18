@@ -6,7 +6,7 @@ import java.util.*;
 
 public class GameHandler extends GameInstance implements TurnListener{
     private TurnTimer timer;
-    private final long seed;
+    private long seed;
     private ArrayList<ArrayList<Card>> moves;
     private int turnStart;
     private String log;
@@ -17,8 +17,12 @@ public class GameHandler extends GameInstance implements TurnListener{
 
     public GameHandler(int gameID, String gameName, ArrayList<WebSocket> clients, HashMap<WebSocket, String> v){
         super(gameID, gameName, clients, v);
-        seed = 1;
+        moves = new ArrayList<>();
+        rand = new Random();
+        log = "";
         super.clients = clients;
+        timer = new TurnTimer();
+        updateSeed();
         super.vehicles = vehicles;
         moves = new ArrayList<>();
     }
@@ -97,7 +101,8 @@ public class GameHandler extends GameInstance implements TurnListener{
         for (String card: cardString) playerCards.add(new Card(card));
         moves.add(playerCards);
         numRecieved++;
-        if(numRecieved==clients.size()){
+        System.out.println("numRecieved: " + numRecieved + ", clients.size = " + clients.size());
+        if(numRecieved==vehicles.size()){
             for(WebSocket client:clients) client.send("TURN_END");
             numRecieved=0;
         }
@@ -118,7 +123,6 @@ public class GameHandler extends GameInstance implements TurnListener{
             }
             moves.clear();
         }
-        numRecieved=0;
     }
 
     /**
@@ -165,7 +169,7 @@ public class GameHandler extends GameInstance implements TurnListener{
      * @param client The client requesting a vehicle ID.
      */
     public String sendGameInfo(WebSocket client){
-        String sendString = "GAMEINFO:";
+        String sendString = "GAME_INFO:";
         for(Map.Entry<WebSocket,String> vehicle:vehicles.entrySet()){
             sendString = sendString + vehicle.getValue() + "&";
         }
@@ -173,10 +177,21 @@ public class GameHandler extends GameInstance implements TurnListener{
         sendString = sendString + mapID + ":";
         String myVID = vehicles.get(client);
         myVID = myVID.split(",")[1];
-        sendString = sendString + myVID;
-        sendString= sendString+":"+log;
+        sendString = sendString + myVID + ":";
+        sendString = sendString + Long.toString(getSeed()).substring(0,5);
+        if(!log.isEmpty()) {
+            sendString = sendString + ":" + log;
+        }
         client.send(sendString);
+        System.out.println(sendString);
         return sendString;
+    }
+
+    private long getSeed() {
+        return seed;
+    }
+    private void updateSeed(){
+        seed = rand.nextLong();
     }
 
 
