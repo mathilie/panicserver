@@ -143,8 +143,10 @@ public class GameController {
 
     public void disconnected(WebSocket client){
         if(playerIDs.containsKey(client)){
+            System.out.println("Found pid");
             int gameId = playerIDGameID.get(playerIDs.get(client));
             boolean destroy = getGame(gameId).removeClient(client);
+            System.out.println("Destroy is :"+destroy);
             if(destroy){
                 lobbies.remove(gameId);
                 games.remove(gameId);

@@ -129,14 +129,14 @@ public class LobbyHandler extends GameInstance {
         if(players.containsKey(client)){
             turnStart=0;
             disconnect(client);
-            for(WebSocket conn:playerIDs.values()){
-                sendLobbyInfo(conn);
-                //conn.send("UNREADY");
-            }
             vehiclesClear();
             colors = new ArrayList<>(Arrays.asList(ALL_COLORS));
             if(playerIDs.size()<=0){
                 return true;
+            }
+            for(WebSocket conn:playerIDs.values()){
+                sendLobbyInfo(conn);
+                //conn.send("UNREADY");
             }
         }
         else{
