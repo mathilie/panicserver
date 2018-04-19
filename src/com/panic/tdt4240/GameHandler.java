@@ -6,20 +6,25 @@ import java.util.*;
 
 public class GameHandler extends GameInstance implements TurnListener{
     private TurnTimer timer;
-    private final long seed;
+    private long seed;
     private ArrayList<ArrayList<Card>> moves;
     private int turnStart;
     private String log;
     private Random rand;
     private SanityChecker sc;
     private Thread timerThread;
+    private int clientsAlive;
 
 
     public GameHandler(int gameID, String gameName, ArrayList<WebSocket> clients, HashMap<WebSocket, String> v){
         super(gameID, gameName, clients, v);
-        seed = 1;
-        super.clients = clients;
-        super.vehicles = vehicles;
+        moves = new ArrayList<>();
+        rand = new Random();
+        log = "";
+        timer = new TurnTimer();
+        updateSeed();
+        moves = new ArrayList<>();
+        clientsAlive = clients.size();
     }
 
     /**
@@ -37,10 +42,13 @@ public class GameHandler extends GameInstance implements TurnListener{
                 sendGameInfo(conn);
                 break;
             case "SEND_CARDS":
-                writeCardStringToList(Arrays.copyOfRange(data, 1, data.length-1));
+                writeCardStringToList(Arrays.stream(data).skip(1).toArray(String[]::new));
                 break;
-            case "ENTERED_RUN_EFFECT_STATE":
+            case "ENTERED_RUN_EFFECTS_STATE":
                 sendCardString();
+                break;
+            case "END_RUN_EFFECTS_STATE":
+                sc.sanityPassed();//todo
                 break;
             case "BEGIN_TURN":
                 beginTurn();
@@ -55,15 +63,23 @@ public class GameHandler extends GameInstance implements TurnListener{
                 conn.send("TO BE IMPLEMENTED LATER. SORRY!");
                 conn.close();
                 break;
+            case "DESTROY":
+                destroy();
+                break;
             default:
         }
+    }
+
+
+    //String: TOGAME//GameID//DESTROY//VID//PID
+    private void destroy() {
+        //int vidToDestroy = Integer.parseInt(data[1]);
     }
 
     @Override
     public void removeClient(WebSocket ws) {
 
     }
-
 
 
     /**
@@ -82,6 +98,7 @@ public class GameHandler extends GameInstance implements TurnListener{
             for(Card nextCard:roundOfCards) returnString=returnString+nextCard+"//";
             roundOfCards.clear();
         }
+        returnString=returnString;
         returnString=returnString+"TURNEND//";
         log = log + returnString;
         return returnString;
@@ -96,7 +113,8 @@ public class GameHandler extends GameInstance implements TurnListener{
         for (String card: cardString) playerCards.add(new Card(card));
         moves.add(playerCards);
         numRecieved++;
-        if(numRecieved==clients.size()){
+        System.out.println("numRecieved: " + numRecieved + ", clients.size = " + clients.size());
+        if(numRecieved==vehicles.size()){
             for(WebSocket client:clients) client.send("TURN_END");
             numRecieved=0;
         }
@@ -117,7 +135,6 @@ public class GameHandler extends GameInstance implements TurnListener{
             }
             moves.clear();
         }
-        numRecieved=0;
     }
 
     /**
@@ -164,7 +181,7 @@ public class GameHandler extends GameInstance implements TurnListener{
      * @param client The client requesting a vehicle ID.
      */
     public String sendGameInfo(WebSocket client){
-        String sendString = "GAMEINFO:";
+        String sendString = "GAME_INFO:";
         for(Map.Entry<WebSocket,String> vehicle:vehicles.entrySet()){
             sendString = sendString + vehicle.getValue() + "&";
         }
@@ -172,10 +189,21 @@ public class GameHandler extends GameInstance implements TurnListener{
         sendString = sendString + mapID + ":";
         String myVID = vehicles.get(client);
         myVID = myVID.split(",")[1];
-        sendString = sendString + myVID;
-        sendString= sendString+":"+log;
+        sendString = sendString + myVID + ":";
+        sendString = sendString + Long.toString(getSeed()).substring(0,5);
+        if(!log.isEmpty()) {
+            sendString = sendString + ":" + log;
+        }
         client.send(sendString);
+        System.out.println(sendString);
         return sendString;
+    }
+
+    private long getSeed() {
+        return seed;
+    }
+    private void updateSeed(){
+        seed = rand.nextLong();
     }
 
 
@@ -205,11 +233,25 @@ public class GameHandler extends GameInstance implements TurnListener{
     }
     class SanityChecker {
         HashMap<Integer, String> gameHashes = new HashMap<>();
+        HashMap<Integer, List<Boolean>> destroy = new HashMap<Integer, List<Boolean>>();  //<vehicleIDtoDestroy, votes>
 
-        public void addHash(WebSocket client, String hash) {
+        protected void addDestroy(Integer vid, boolean vote) {
+            if (destroy.containsKey(vid)) {
+                destroy.get(vid).add(vote);
+                if (destroy.get(vid).size() == clientsAlive && !destroy.get(vid).contains(false)) {
+                    destroyVehicle(vid);
+                }
+            } else {
+                destroy.put(vid,new ArrayList<Boolean>());
+                addDestroy(vid,vote);
+            }
+        }
+
+
+
+        protected void addHash (WebSocket client, String hash){
             gameHashes.put(clients.indexOf(client), hash);
             if (gameHashes.size() == clients.size()) {
-
                 if (turnStart == clients.size()) {
                     turnStart = 0;
                     for (WebSocket clientt : clients) {
@@ -221,9 +263,16 @@ public class GameHandler extends GameInstance implements TurnListener{
                 }
             }
         }
-    }
 
-    //NOT TO BE IMPLEMENTED DUE TO TIME CONSTRAIN
+
+        private void destroyVehicle(Integer vid) {
+        }
+
+        private void sanityPassed(){
+            for(WebSocket conn:clients) conn.send("VALID_STATE");
+        }
+    }
+        //NOT TO BE IMPLEMENTED DUE TO TIME CONSTRAIN
 
     private void writeIncrementToFile(){
         //Writes current increment to file in case of server crash.

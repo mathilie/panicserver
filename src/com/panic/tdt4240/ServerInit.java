@@ -20,6 +20,7 @@ public class ServerInit extends WebSocketServer {
         int port = Integer.parseInt(args[0]);
 
         WebSocketServer server = new ServerInit(new InetSocketAddress(host, port));
+        server.setConnectionLostTimeout(15);
         server.run();
     }
 

@@ -9,9 +9,9 @@ public abstract class GameInstance{
 
     //TODO make private/protected
     int playerCount;
-    HashMap<WebSocket, Integer> playerIDs;
-    ArrayList<WebSocket> clients;
-    HashMap<WebSocket,String> vehicles;
+    HashMap<WebSocket, Integer> playerIDs; //
+    ArrayList<WebSocket> clients; //used in start game, sendLobbyInfo, removeClient
+    HashMap<WebSocket,String> vehicles; //used in sendLobbyInfo, removeClient, clientReady
     String mapID;
     int numRecieved;
     int turnStart;
@@ -47,15 +47,23 @@ public abstract class GameInstance{
      * @param client The client requesting to join the game
      */
     protected void addClient(int playerID, WebSocket client){
-        if(clients.size()<=playerCount) {
+        if(clients.size()<playerCount&&!clients.contains(client)) {
             clients.add(client);
             playerIDs.put(client,playerID);
+            client.send("LOBBY_SUCCESSFUL:"+gameID);
+        } else if(clients.contains(client)) {
             client.send("LOBBY_SUCCESSFUL:"+gameID);
         }
         else{
             System.out.println("Attempted to join a full game");
             client.send("LOBBY_FAILED");
         }
+
+    }
+
+    public void reconnect(int playerID, WebSocket client, WebSocket old){
+        clients.set(playerID,client);
+        playerIDs.put(client, playerID);
     }
 
     /**
