@@ -114,9 +114,10 @@ public class LobbyHandler extends GameInstance {
     }
 
     @Override
-    public void addClient(int playerID, WebSocket client){
-        super.addClient(playerID, client);
+    public boolean addClient(int playerID, WebSocket client){
+        boolean returnbool = super.addClient(playerID, client);
         for(WebSocket player:players.keySet()) sendLobbyInfo(player);
+        return returnbool;
     }
 
     /**
