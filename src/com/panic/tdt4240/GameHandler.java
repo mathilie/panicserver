@@ -13,6 +13,7 @@ public class GameHandler extends GameInstance implements TurnListener{
     private Random rand;
     private SanityChecker sc;
     private Thread timerThread;
+    private int clientsAlive;
 
 
     public GameHandler(int gameID, String gameName, ArrayList<WebSocket> clients, HashMap<WebSocket, String> v){
@@ -20,11 +21,10 @@ public class GameHandler extends GameInstance implements TurnListener{
         moves = new ArrayList<>();
         rand = new Random();
         log = "";
-        super.clients = clients;
         timer = new TurnTimer();
         updateSeed();
-        super.vehicles = vehicles;
         moves = new ArrayList<>();
+        clientsAlive = clients.size();
     }
 
     /**
@@ -44,8 +44,11 @@ public class GameHandler extends GameInstance implements TurnListener{
             case "SEND_CARDS":
                 writeCardStringToList(Arrays.stream(data).skip(1).toArray(String[]::new));
                 break;
-            case "ENTERED_RUN_EFFECT_STATE":
+            case "ENTERED_RUN_EFFECTS_STATE":
                 sendCardString();
+                break;
+            case "END_RUN_EFFECTS_STATE":
+                sc.sanityPassed();//todo
                 break;
             case "BEGIN_TURN":
                 beginTurn();
@@ -60,15 +63,23 @@ public class GameHandler extends GameInstance implements TurnListener{
                 conn.send("TO BE IMPLEMENTED LATER. SORRY!");
                 conn.close();
                 break;
+            case "DESTROY":
+                destroy();
+                break;
             default:
         }
+    }
+
+
+    //String: TOGAME//GameID//DESTROY//VID//PID
+    private void destroy() {
+        //int vidToDestroy = Integer.parseInt(data[1]);
     }
 
     @Override
     public void removeClient(WebSocket ws) {
 
     }
-
 
 
     /**
@@ -87,6 +98,7 @@ public class GameHandler extends GameInstance implements TurnListener{
             for(Card nextCard:roundOfCards) returnString=returnString+nextCard+"//";
             roundOfCards.clear();
         }
+        returnString=returnString;
         returnString=returnString+"TURNEND//";
         log = log + returnString;
         return returnString;
@@ -221,11 +233,25 @@ public class GameHandler extends GameInstance implements TurnListener{
     }
     class SanityChecker {
         HashMap<Integer, String> gameHashes = new HashMap<>();
+        HashMap<Integer, List<Boolean>> destroy = new HashMap<Integer, List<Boolean>>();  //<vehicleIDtoDestroy, votes>
 
-        public void addHash(WebSocket client, String hash) {
+        protected void addDestroy(Integer vid, boolean vote) {
+            if (destroy.containsKey(vid)) {
+                destroy.get(vid).add(vote);
+                if (destroy.get(vid).size() == clientsAlive && !destroy.get(vid).contains(false)) {
+                    destroyVehicle(vid);
+                }
+            } else {
+                destroy.put(vid,new ArrayList<Boolean>());
+                addDestroy(vid,vote);
+            }
+        }
+
+
+
+        protected void addHash (WebSocket client, String hash){
             gameHashes.put(clients.indexOf(client), hash);
             if (gameHashes.size() == clients.size()) {
-
                 if (turnStart == clients.size()) {
                     turnStart = 0;
                     for (WebSocket clientt : clients) {
@@ -237,9 +263,16 @@ public class GameHandler extends GameInstance implements TurnListener{
                 }
             }
         }
-    }
 
-    //NOT TO BE IMPLEMENTED DUE TO TIME CONSTRAIN
+
+        private void destroyVehicle(Integer vid) {
+        }
+
+        private void sanityPassed(){
+            for(WebSocket conn:clients) conn.send("VALID_STATE");
+        }
+    }
+        //NOT TO BE IMPLEMENTED DUE TO TIME CONSTRAIN
 
     private void writeIncrementToFile(){
         //Writes current increment to file in case of server crash.
