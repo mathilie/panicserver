@@ -59,8 +59,7 @@ public class GameHandler extends GameInstance implements TurnListener{
                 conn.send(String.valueOf(timer.getTimeLeft()));
                 break;
             case "RECONNECT":
-                conn.send("TO BE IMPLEMENTED LATER. SORRY!");
-                conn.close();
+                reconect(Integer.parseInt(data[0]), conn);
                 break;
             case "DESTROY":
                 destroy();
@@ -183,19 +182,21 @@ public class GameHandler extends GameInstance implements TurnListener{
 
     /**
      * Sends the vehicle ID to the client requesting it. If no vehicle ID is set, "NONE" is sent. Format: "ALL_VEHICLES:MY_VEHICLE:MAPID
+     * //
      * @param client The client requesting a vehicle ID.
      */
     public String sendGameInfo(WebSocket client){
         String sendString = "GAME_INFO:";
         //TODO ----What info?
-        for(Map.Entry<WebSocket,String> vehicle:vehicles.entrySet()){
-            sendString = sendString + vehicle.getValue() + "&";
+        for(WebSocket player:players.keySet()){ //VTYPE,VID,COLOR&
+            sendString = sendString
+                    + players.get(player).get(1)+","
+                    + players.get(player).get(2)+","
+                    + players.get(player).get(3)+"&";
         }
-
         sendString = sendString.substring(0,sendString.length()-1) + ":";
         sendString = sendString + mapID + ":";
-        String myVID = vehicles.get(client);
-        myVID = myVID.split(",")[1];
+        String myVID = (String) players.get(client).get(2);
         sendString = sendString + myVID + ":";
         sendString = sendString + Long.toString(getSeed()).substring(0,5);
         if(!log.isEmpty()) {
@@ -216,7 +217,7 @@ public class GameHandler extends GameInstance implements TurnListener{
 
     //TODO make game out of lobby
     public void startGame(){
-        for(WebSocket client: clients) client.send("START");
+        for(WebSocket client:players.keySet()) client.send("START");
         timer = new TurnTimer();
         timer.setListener(this);
     }
@@ -238,8 +239,11 @@ public class GameHandler extends GameInstance implements TurnListener{
             return o.priority-this.priority; //This is inverted so that the highest priority is returned as the lowest card to function in the sort method.
         }
     }
+
+    
+
     class SanityChecker {
-        HashMap<Integer, String> gameHashes = new HashMap<>();
+        HashMap<WebSocket, String> gameHashes = new HashMap<>();
         HashMap<Integer, List<Boolean>> destroy = new HashMap<Integer, List<Boolean>>();  //<vehicleIDtoDestroy, votes>
 
         protected void addDestroy(Integer vid, boolean vote) {
@@ -255,18 +259,17 @@ public class GameHandler extends GameInstance implements TurnListener{
         }
 
 
-
+        //TODO not implemented
         protected void addHash (WebSocket client, String hash){
-            gameHashes.put(clients.indexOf(client), hash);
-            if (gameHashes.size() == clients.size()) {
-                if (turnStart == clients.size()) {
+            gameHashes.put(client, hash);
+            if (gameHashes.size() == playersAlive) {
+                if (turnStart == playersAlive) {
                     turnStart = 0;
-                    for (WebSocket clientt : clients) {
-                        if (client != null) {
-                            client.send("GAME_START");
+                    for (WebSocket player : players.keySet()) {
+                        if (player != null) {
+                            player.send("GAME_START");
                         }
                     }
-
                 }
             }
         }
@@ -276,7 +279,7 @@ public class GameHandler extends GameInstance implements TurnListener{
         }
 
         private void sanityPassed(){
-            for(WebSocket conn:clients) conn.send("VALID_STATE");
+            for(WebSocket conn:players.keySet()) conn.send("VALID_STATE");
         }
     }
         //NOT TO BE IMPLEMENTED DUE TO TIME CONSTRAIN
@@ -289,7 +292,7 @@ public class GameHandler extends GameInstance implements TurnListener{
         //Write moves to log, to make reconnecting possible.
     }
 
-    private void reconect(int playerID){
-
+    private void reconect(int playerID, WebSocket player){
+        addClient(playerID, player);
     }
 }

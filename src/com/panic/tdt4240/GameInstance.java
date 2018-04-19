@@ -65,7 +65,7 @@ public abstract class GameInstance{
     }
 
 
-    public void reconnect(int playerID, WebSocket client, WebSocket old){
+    public void reconnect(int playerID, WebSocket client){
         addClient(playerID,client);
     }
 
