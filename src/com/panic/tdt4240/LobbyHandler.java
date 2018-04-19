@@ -9,7 +9,7 @@ public class LobbyHandler extends GameInstance {
     private ArrayList<String> colors;
     static final int MAX_PLAYER_COUNT = 4;
 
-    public LobbyHandler(int gameID, String playerCount,String gameName, int playerId, WebSocket maker){
+    public LobbyHandler(int gameID, String playerCount,String gameName){
         super(gameID, gameName);
         int playerNum = Integer.parseInt(playerCount);
         if(playerNum<MAX_PLAYER_COUNT) {
@@ -21,7 +21,6 @@ public class LobbyHandler extends GameInstance {
         this.gameID = Integer.toString(gameID); //overflødig?
         this.gameName = gameName;               //overflødig?
         colors = new ArrayList<>(Arrays.asList(ALL_COLORS)); //clientReady, remove client
-        super.addClient(playerId, maker);
     }
 
     /**

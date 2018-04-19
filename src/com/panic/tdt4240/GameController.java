@@ -78,10 +78,11 @@ public class GameController {
     //Todo
     private void createGame(WebSocket conn, String mapID, String playerCount, String gameName) {
         int gameID = gameCount.incrementAndGet();
-        LobbyHandler lobby = new LobbyHandler(gameID, playerCount,gameName, playerIDs.get(conn), conn);
+        LobbyHandler lobby = new LobbyHandler(gameID, playerCount,gameName);
+        lobbies.put(gameID,lobby);
+        lobby.addClient(playerIDs.get(conn), conn);
         lobby.setMapID(mapID);
         playerIDGameID.put(playerIDs.get(conn), gameID);
-        lobbies.put(gameID,lobby);
         System.out.println("Created Lobby: " + lobbies.get(gameID).getGameName());
     }
 
