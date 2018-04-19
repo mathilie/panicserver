@@ -246,6 +246,20 @@ public class GameHandler extends GameInstance implements TurnListener{
         HashMap<WebSocket, String> gameHashes = new HashMap<>();
         HashMap<Integer, List<Boolean>> destroy = new HashMap<Integer, List<Boolean>>();  //<vehicleIDtoDestroy, votes>
 
+
+        public void FinishTurn(){
+            sanityChecks();
+        }
+        //Todo sanityCHecks
+        public void sanityChecks() {
+            numRecieved++;
+            if(numRecieved==playersAlive) {
+                numRecieved=0;
+                sanityPassed();
+            }
+        }
+
+
         protected void addDestroy(Integer vid, boolean vote) {
             if (destroy.containsKey(vid)) {
                 destroy.get(vid).add(vote);

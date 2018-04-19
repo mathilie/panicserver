@@ -45,22 +45,25 @@ public abstract class GameInstance{
      * Adds a client to the list of clients if there are not more than the max number of players
      * @param client The client requesting to join the game
      */
-    protected void addClient(int playerID, WebSocket client){
+    protected boolean addClient(int playerID, WebSocket client){
         if(players.size()< localMaxPlayerCount &&!playerIDs.containsKey(playerID)) {    //new player
             playerIDs.put(playerID, client);
             ArrayList playerData = new ArrayList();
-            playerData.addAll(Arrays.asList(playerID,"NONE", "NONE", "NONE")); //PID,VehicleID,Color
+            playerData.addAll(Arrays.asList(playerID,"NONE", "NONE", "NONE")); //PID,VType, VehicleID,Color
             players.put(client,playerData);
             client.send("LOBBY_SUCCESSFUL:"+gameID);
+            return true;
         } else if(playerIDs.containsKey(playerID)) {                                    //Reconnecting player
             WebSocket old = playerIDs.replace(playerID, client); //so sexy
             players.put(client, players.get(old));
             players.remove(old);
             client.send("LOBBY_SUCCESSFUL:"+gameID);
+            return true;
         }
         else{                                                                          //Lobby/game full
             System.out.println("Attempted to join a full game");
             client.send("LOBBY_FAILED");
+            return false;
         }
     }
 
