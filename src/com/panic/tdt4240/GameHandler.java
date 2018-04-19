@@ -240,7 +240,7 @@ public class GameHandler extends GameInstance implements TurnListener{
         }
     }
 
-    
+
 
     class SanityChecker {
         HashMap<WebSocket, String> gameHashes = new HashMap<>();

@@ -81,7 +81,7 @@ public class GameController {
         LobbyHandler lobby = new LobbyHandler(gameID, playerCount,gameName);
         lobby.setMapID(mapID);
         lobby.addClient(playerIDs.get(conn), conn);
-        playerIDGameID.put(playerIDs.get(conn), gameID);
+       // playerIDGameID.put(playerIDs.get(conn), gameID);
         lobbies.put(gameID,lobby);
         lobby.sendLobbyInfo(conn);
         System.out.println("Created Lobby: " + lobbies.get(gameID).getGameName());
@@ -99,8 +99,8 @@ public class GameController {
 
     private void getLobbies(WebSocket conn){
         String sendString = "GET_LOBBIES:";
-        for(Map.Entry<Integer,LobbyHandler> gameInstance:lobbies.entrySet()){
-            sendString = sendString + gameInstance.getValue().getGameName() + "," + gameInstance.getValue().getCurrentPlayerNum() + "," + gameInstance.getValue().getMaxPlayerCount() + "," +  gameInstance.getKey() + "&";
+        for(GameInstance gameInstance:lobbies.values()){
+            sendString = sendString + gameInstance.gameID+"," + gameInstance.getGameName() + "," + gameInstance.getCurrentPlayerNum() + "," + gameInstance.getMaxPlayerCount() + "," +  "&";
         }
         sendString = sendString.substring(0,sendString.length()-1);
         conn.send(sendString);
