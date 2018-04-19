@@ -16,6 +16,7 @@ public class GameController {
 
     private static HashMap<Integer, LobbyHandler> lobbies;
     private static HashMap<Integer, GameHandler> games;
+    private static HashMap<Integer, Integer> playerIDGameID;
     private static final AtomicInteger gameCount = new AtomicInteger(0);
     private static final AtomicInteger playerCount = new AtomicInteger(0);
     private HashMap<WebSocket,Integer> playerIDs;
@@ -35,6 +36,8 @@ public class GameController {
             case "ENTER":
                 enterGame(data[1],conn);
                 break;
+            case "EXIT":
+                exitGame(conn);
             case "CREATE":
                 createGame(conn, data[1], data[2], data[3]);
                 break;
@@ -58,6 +61,7 @@ public class GameController {
         }
     }
 
+
     private void toGame(String[] data, WebSocket conn) {
         int gameID = Integer.parseInt(data[1]);
         String[] dataToGame = Arrays.stream(data).skip(2).toArray(String[]::new); // removes switch command and gameID
@@ -71,6 +75,7 @@ public class GameController {
         LobbyHandler lobby = new LobbyHandler(gameID, playerCount,gameName);
         lobby.setMapID(mapID);
         lobby.addClient(playerIDs.get(conn), conn);
+        playerIDGameID.put(playerIDs.get(conn), gameID);
         lobbies.put(gameID,lobby);
         lobby.sendLobbyInfo(conn);
         System.out.println("Created Lobby: " + lobbies.get(gameID).getGameName());
@@ -80,6 +85,10 @@ public class GameController {
     private void enterGame(String gameID, WebSocket conn) {
         int tmp = Integer.parseInt(gameID);
         getGame(tmp).addClient(playerIDs.get(conn), conn);
+    }
+
+    private void exitGame(WebSocket conn) {
+        disconnected(conn);
     }
 
     private void getLobbies(WebSocket conn){
@@ -123,7 +132,14 @@ public class GameController {
     }
 
     public void disconnected(WebSocket client){
-        //for(GameInstance client:getLobbies();)
+        if(playerIDs.containsKey(client)){
+            int gameId = playerIDGameID.get(playerIDs.get(client));
+            boolean destroy = getGame(gameId).removeClient(client);
+            if(destroy){
+                lobbies.remove(gameId);
+                games.remove(gameId);
+            }
+        }
     }
 
     //MAGIC!

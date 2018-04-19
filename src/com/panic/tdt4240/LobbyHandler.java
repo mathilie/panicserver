@@ -12,20 +12,16 @@ public class LobbyHandler extends GameInstance {
     public LobbyHandler(int gameID, String playerCount,String gameName){
         super(gameID, gameName);
         int playerNum = Integer.parseInt(playerCount);
-        playerIDs = new HashMap<>();
         if(playerNum<MAX_PLAYER_COUNT) {
-            this.playerCount = playerNum;
+            this.localMaxPlayerCount = playerNum;
         }
         else{
-            this.playerCount = MAX_PLAYER_COUNT;
+            this.localMaxPlayerCount = MAX_PLAYER_COUNT;
         }
-        this.gameID = Integer.toString(gameID);
-        this.gameName = gameName;
+        this.gameID = Integer.toString(gameID); //overflødig?
+        this.gameName = gameName;               //overflødig?
 
         colors = new ArrayList<>(Arrays.asList(ALL_COLORS)); //clientReady, remove client
-        clients = new ArrayList<>(); //used in start game, sendLobbyInfo, removeClient
-        vehicles = new HashMap<>();  //used in sendLobbyInfo, removeClient, clientReady
-        turnStart = 0;
     }
 
     /**
@@ -48,28 +44,26 @@ public class LobbyHandler extends GameInstance {
         turnStart++;
         if (count.get() < 1000) {
             VID = String.format("%03d", count.incrementAndGet());
-        } else {
-            //TODO: What if someone enters and leaves 1000 times?
-        }
+        } else {} //TODO: What if someone enters and leaves 1000 times?
         VID = "V-" + VID;
         if (colors.size() > 0) {
             color = colors.get(0);
             colors.remove(0);
         }
-        vehicleString = VType + "," + VID + "," + color;
-        vehicles.put(conn,vehicleString);
+        vehicleString = VType + "," + VID + "," + color; //TODO save separate or as string?
+        players.get(conn).set(1,VType);
+        players.get(conn).set(2,VID);
+        players.get(conn).set(3,color);
         sendLobbyInfo(conn);
-        if(turnStart>=clients.size()) startGame();
+        if(turnStart>=players.size()) startGame();
     }
 
     //TODO remove Client, switch vehicle and clients
     private void startGame() {
-        for(WebSocket client:clients)
+        for(WebSocket client:playerIDs.values())
             client.send("GAME_START");
-        GameHandler game = new GameHandler(Integer.parseInt(gameID), gameName, clients, vehicles);
-
+        GameHandler game = new GameHandler(Integer.parseInt(gameID), gameName, players, playerIDs);
         GameController.startGame(game, Integer.parseInt(gameID), mapID);
-
     }
 
 
@@ -99,28 +93,21 @@ public class LobbyHandler extends GameInstance {
      * "LOBBY_INFO:MAX_PLAYERS:GAME_NAME:GAME_ID:MAP_ID"
      * @param client
      * @return
-     *///TODO playerIDs
+     *///TODO did changes IS THIS TEE RIGHT INFO?
     public String sendLobbyInfo(WebSocket client){
         String sendString = "LOBBY_INFO:";
-        sendString = sendString + Integer.toString(playerCount) + ":";
+        sendString = sendString + Integer.toString(localMaxPlayerCount) + ":";
         sendString = sendString + gameName + ":";
         sendString = sendString + gameID + ":";
         sendString = sendString + mapID + ":";
-        for(Map.Entry<WebSocket,Integer> PID:playerIDs.entrySet()){
-            sendString = sendString + PID.getValue().toString() + "&";
+        for(int PID:playerIDs.keySet()){
+            sendString = sendString + PID + "&";
         }
         sendString = sendString.substring(0,sendString.length()-1) + ":";
-        for(WebSocket conn:clients){
-            if(playerIDs.containsKey(conn) && vehicles.containsKey(conn)){
-                sendString = sendString + vehicles.get(conn) + "&";
-            }
-            else{
-                sendString = sendString + "NONE&";
-            }
-            sendString = sendString + "&";
+        for(WebSocket conn:players.keySet()){
+            sendString = sendString + players.get(conn).get(1)+"&";  //Gets vehicleType
         }
-
-        sendString=sendString.substring(0,sendString.length()-1);
+        sendString=sendString.substring(0,sendString.length()-1);   //Removes & at end
         client.send(sendString);
         System.out.println(sendString);
         return sendString;
@@ -129,26 +116,34 @@ public class LobbyHandler extends GameInstance {
     /**
      * Removes the client from the game if it is part of it. If the player previously was readied up, reduces the counter for starting game
      * @param client The client to be removed
-     *///TODO clients
+     * @return true if game is to be terminated
+     *///TODO did changes
     @Override
-    public void removeClient(WebSocket client){
-        if(clients.contains(client)){
+    public boolean removeClient(WebSocket client){
+        if(players.containsKey(client)){
             turnStart=0;
-            clients.remove(client);
-            playerIDs.remove(client);
-            for(WebSocket conn:clients){
+            disconnect(client);
+            for(WebSocket conn:playerIDs.values()){
                 sendLobbyInfo(conn);
                 //conn.send("UNREADY");
             }
-            vehicles.clear();
+            vehiclesClear();
             colors = new ArrayList<>(Arrays.asList(ALL_COLORS));
-            if(clients.size()==0){
-                //TODO: terminate game
-
+            if(playerIDs.size()<=0){
+                return true;
             }
         }
         else{
             System.out.println("Player not in game.");
+        }
+        return false;
+    }
+
+    private void vehiclesClear() {
+        for(WebSocket player:players.keySet()){
+            players.get(player).set(1,"NONE"); //vType
+            players.get(player).set(2,"NONE"); //vId
+            players.get(player).set(3,"NONE"); //color
         }
     }
 }

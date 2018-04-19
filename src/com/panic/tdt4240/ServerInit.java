@@ -44,6 +44,7 @@ public class ServerInit extends WebSocketServer {
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
         System.out.println("closed " + conn.getRemoteSocketAddress() + " with exit code " + code + " additional info: " + reason);
+        c.disconnected(conn);
         //TODO see if player was active in a game
     }
 

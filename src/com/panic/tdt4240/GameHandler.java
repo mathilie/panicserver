@@ -10,21 +10,20 @@ public class GameHandler extends GameInstance implements TurnListener{
     private ArrayList<ArrayList<Card>> moves;
     private int turnStart;
     private String log;
-    private Random rand;
     private SanityChecker sc;
     private Thread timerThread;
-    private int clientsAlive;
+    private int playersAlive;
 
 
-    public GameHandler(int gameID, String gameName, ArrayList<WebSocket> clients, HashMap<WebSocket, String> v){
-        super(gameID, gameName, clients, v);
+    public GameHandler(int gameID, String gameName, HashMap<WebSocket, List> playerMap, HashMap<Integer, WebSocket> idMap){
+        super(gameID, gameName, playerMap, idMap);
         moves = new ArrayList<>();
-        rand = new Random();
         log = "";
         timer = new TurnTimer();
         updateSeed();
         moves = new ArrayList<>();
-        clientsAlive = clients.size();
+        playersAlive = playerIDs.size();
+        sc = new SanityChecker();
     }
 
     /**
@@ -76,9 +75,15 @@ public class GameHandler extends GameInstance implements TurnListener{
         //int vidToDestroy = Integer.parseInt(data[1]);
     }
 
-    @Override
-    public void removeClient(WebSocket ws) {
-
+    @Override //TODO
+    public boolean removeClient(WebSocket ws) {
+        if(playerIDs.containsValue(ws)){
+            disconnect(ws);
+            if (playerIDs.size()==0){
+                return true;
+            }
+        }
+        return false;
     }
 
 
@@ -113,9 +118,9 @@ public class GameHandler extends GameInstance implements TurnListener{
         for (String card: cardString) playerCards.add(new Card(card));
         moves.add(playerCards);
         numRecieved++;
-        System.out.println("numRecieved: " + numRecieved + ", clients.size = " + clients.size());
-        if(numRecieved==vehicles.size()){
-            for(WebSocket client:clients) client.send("TURN_END");
+        System.out.println("numRecieved: " + numRecieved + ", playersAlive = " + playersAlive);
+        if(numRecieved==playersAlive){
+            for(WebSocket client:players.keySet()) client.send("TURN_END");
             numRecieved=0;
         }
     }
@@ -126,11 +131,11 @@ public class GameHandler extends GameInstance implements TurnListener{
      */
     private void sendCardString(){
         numRecieved++;
-        if (clients.size() == numRecieved) {
+        if (playersAlive == numRecieved) {
             numRecieved = 0;
             timerThread.interrupt();
             String sendString = "GET_TURN:" + createCardString();
-            for (WebSocket client : clients) {
+            for (WebSocket client : playerIDs.values()) {
                 client.send(sendString);
             }
             moves.clear();
@@ -154,8 +159,8 @@ public class GameHandler extends GameInstance implements TurnListener{
      */
     private void beginTurn(){
         turnStart++;
-        if (turnStart == clients.size()) {
-            for(WebSocket client:clients){
+        if (turnStart == playersAlive) {
+            for(WebSocket client:players.keySet()){
                 client.send("BEGIN_TURN:"+timer.getTimeLeft());
             }
             timer.setTimer();
@@ -171,7 +176,7 @@ public class GameHandler extends GameInstance implements TurnListener{
      */
     @Override
     public void turnFinished() {
-        for(WebSocket client:clients) client.send("TURN_END");
+        for(WebSocket client:players.keySet()) client.send("TURN_END");
     }
 
 
@@ -182,9 +187,11 @@ public class GameHandler extends GameInstance implements TurnListener{
      */
     public String sendGameInfo(WebSocket client){
         String sendString = "GAME_INFO:";
+        //TODO ----What info?
         for(Map.Entry<WebSocket,String> vehicle:vehicles.entrySet()){
             sendString = sendString + vehicle.getValue() + "&";
         }
+
         sendString = sendString.substring(0,sendString.length()-1) + ":";
         sendString = sendString + mapID + ":";
         String myVID = vehicles.get(client);
@@ -203,7 +210,7 @@ public class GameHandler extends GameInstance implements TurnListener{
         return seed;
     }
     private void updateSeed(){
-        seed = rand.nextLong();
+        seed = new Random().nextLong();
     }
 
 
@@ -238,7 +245,7 @@ public class GameHandler extends GameInstance implements TurnListener{
         protected void addDestroy(Integer vid, boolean vote) {
             if (destroy.containsKey(vid)) {
                 destroy.get(vid).add(vote);
-                if (destroy.get(vid).size() == clientsAlive && !destroy.get(vid).contains(false)) {
+                if (destroy.get(vid).size() == playersAlive && !destroy.get(vid).contains(false)) {
                     destroyVehicle(vid);
                 }
             } else {
