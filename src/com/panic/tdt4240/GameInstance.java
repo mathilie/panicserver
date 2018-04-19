@@ -47,7 +47,6 @@ public abstract class GameInstance{
      * @param client The client requesting to join the game
      */
     protected void addClient(int playerID, WebSocket client){
-        if(clients.size()<playerCount) {
         if(clients.size()<playerCount&&!clients.contains(client)) {
             clients.add(client);
             playerIDs.put(client,playerID);
@@ -59,6 +58,7 @@ public abstract class GameInstance{
             System.out.println("Attempted to join a full game");
             client.send("LOBBY_FAILED");
         }
+
     }
 
     public void reconnect(int playerID, WebSocket client, WebSocket old){
