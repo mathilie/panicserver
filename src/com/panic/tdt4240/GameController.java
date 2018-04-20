@@ -26,6 +26,7 @@ public class GameController {
         if(playerIDs==null) playerIDs = new HashMap<>();
         if(lobbies==null) lobbies = new HashMap<>();
         if(games==null) games = new HashMap<>();
+        if(playerIDGameID==null) playerIDGameID = new HashMap<>();
     }
 
     public void Sort(WebSocket conn, String[] data) {
