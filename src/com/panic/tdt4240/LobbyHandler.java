@@ -39,7 +39,6 @@ public class LobbyHandler extends GameInstance {
     private void clientReady(WebSocket conn,String VType) {
         String VID = "";
         String color = "";
-        String vehicleString = "";
         turnStart++;
         if (count.get() < 1000) {
             VID = String.format("%03d", count.incrementAndGet());
@@ -49,7 +48,6 @@ public class LobbyHandler extends GameInstance {
             color = colors.get(0);
             colors.remove(0);
         }
-        vehicleString = VType + "," + VID + "," + color; //TODO save separate or as string?
         players.get(conn).set(1,VType);
         players.get(conn).set(2,VID);
         players.get(conn).set(3,color);

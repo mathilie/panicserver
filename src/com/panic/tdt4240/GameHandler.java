@@ -338,9 +338,7 @@ public class GameHandler extends GameInstance implements TurnListener{
             if(vehiclesToDestroy.size()>0) {
                 System.out.println("Destroying vehicles");
                 String gameOverString = "DEFEAT";
-                if (vehiclesToDestroy.size() == playersAlive) {
-                    gameOverString = "DRAW";
-                }
+                if (vehiclesToDestroy.size() == playersAlive) gameOverString = "DRAW";
                 for (WebSocket player : players.keySet()) {
                     if (vehiclesToDestroy.contains(players.get(player).get(2))){
                         player.send("GAME_OVER:" + gameOverString);
@@ -349,11 +347,14 @@ public class GameHandler extends GameInstance implements TurnListener{
                 }
                 vehiclesDestroyed.addAll(vehiclesToDestroy);
                 vehiclesToDestroy.clear();
-                if(playersAlive==1){
+                if(playersAlive<=1){
                     for (WebSocket player : players.keySet()) {
                         if (!vehiclesDestroyed.contains(players.get(player).get(2))) {
+                            //If player is not destroyed send victory
                             player.send("GAME_OVER:VICTORY");
                         }
+                        //send GAME_OVER_ALL to everyone when one has won or it's a draw.
+                        player.send("GAME_OVER_ALL");
                     }
                 }
             }
