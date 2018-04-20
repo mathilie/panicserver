@@ -5,25 +5,31 @@ import org.java_websocket.WebSocket;
 import java.util.*;
 
 public class GameHandler extends GameInstance implements TurnListener{
-    //private TurnTimer timer;
+    private TurnTimer timer;
     private long seed;
     private ArrayList<ArrayList<Card>> moves;
     private int turnStart;
     private String log;
     private SanityChecker sc;
-    //private Thread timerThread;
+    private Thread timerThread;
     private int playersAlive;
+    private boolean timedOutOfTime;
 
 
     public GameHandler(int gameID, String gameName, HashMap<WebSocket, List> playerMap, HashMap<Integer, WebSocket> idMap){
         super(gameID, gameName, playerMap, idMap);
         moves = new ArrayList<>();
         log = "";
-        //timer = new TurnTimer();
         updateSeed();
         moves = new ArrayList<>();
         playersAlive = playerIDs.size();
         sc = new SanityChecker();
+        timer = new TurnTimer();
+        timer.setTimer();
+        timer.setListener(this);
+        timerThread= new Thread(timer);
+        timerThread.start();
+        timedOutOfTime = false;
     }
 
     /**
@@ -47,7 +53,7 @@ public class GameHandler extends GameInstance implements TurnListener{
                 sendCardString();
                 break;
             case "END_RUN_EFFECTS_STATE":
-                sc.sanityPassed();//todo
+                sc.finishTurn();//todo
                 break;
             case "BEGIN_TURN":
                 beginTurn();
@@ -56,26 +62,26 @@ public class GameHandler extends GameInstance implements TurnListener{
                 removeClient(conn);
                 break;
             case "GET_TIME_LEFT":
-                //conn.send(String.valueOf(timer.getTimeLeft()));
+                conn.send(String.valueOf(timer.getTimeLeft()));
                 break;
             case "RECONNECT":
                 reconect(Integer.parseInt(data[0]), conn);
                 break;
             case "DESTROY":
-                destroy();
+                sc.addDestroy(data[1],conn);
                 break;
-            case "GAME_OVER_INFO": //TODO
-                conn.send("GAME_OVER:VICTORY");
+            case "GAME_OVER_INFO":
+                conn.send("GAME_OVER_INFO:VICTORY");
                 break;
+            case "RESYNC_FINISHED":
+                sc.finishTurn();
             default:
         }
     }
 
 
     //String: TOGAME//GameID//DESTROY//VID//PID
-    private void destroy() {
-        //int vidToDestroy = Integer.parseInt(data[1]);
-    }
+
 
     @Override //TODO
     public boolean removeClient(WebSocket ws) {
@@ -122,7 +128,11 @@ public class GameHandler extends GameInstance implements TurnListener{
         numRecieved++;
         System.out.println("numRecieved: " + numRecieved + ", playersAlive = " + playersAlive);
         if(numRecieved==playersAlive){
-            for(WebSocket client:players.keySet()) client.send("TURN_END");
+            if (!timedOutOfTime){
+                for (WebSocket client : players.keySet()) client.send("TURN_END");
+            }
+            timer.stopTimer();
+            timer.setTimer();
             numRecieved=0;
         }
     }
@@ -135,7 +145,6 @@ public class GameHandler extends GameInstance implements TurnListener{
         numRecieved++;
         if (playersAlive == numRecieved) {
             numRecieved = 0;
-            //timerThread.interrupt();
             String sendString = "GET_TURN:" + createCardString();
             for (WebSocket client : playerIDs.values()) {
                 client.send(sendString);
@@ -162,12 +171,13 @@ public class GameHandler extends GameInstance implements TurnListener{
     private void beginTurn(){
         turnStart++;
         if (turnStart == playersAlive) {
-            //timer.setTimer();
-            //timerThread = new Thread(timer);
-            //timerThread.start();
+            timedOutOfTime = false;
+            timer.startTimer();
+            System.out.println(timer.getTimeLeft());
             for(WebSocket client:players.keySet()){
                 client.send("BEGIN_TURN:0.0"/*+timer.getTimeLeft()*/);
             }
+            turnStart = 0;
         }
     }
 
@@ -178,6 +188,7 @@ public class GameHandler extends GameInstance implements TurnListener{
      */
     @Override
     public void turnFinished() {
+        timedOutOfTime = true;
         for(WebSocket client:players.keySet()) client.send("TURN_END");
     }
 
@@ -247,34 +258,21 @@ public class GameHandler extends GameInstance implements TurnListener{
 
     class SanityChecker {
         HashMap<WebSocket, String> gameHashes = new HashMap<>();
-        HashMap<Integer, List<Boolean>> destroy = new HashMap<Integer, List<Boolean>>();  //<vehicleIDtoDestroy, votes>
+        HashMap<String, List<WebSocket>> destroyVotes = new HashMap<String, List<WebSocket>>();  //<vehicleIDtoDestroy, <PID,votes>>
+        List<String> vehiclesToDestroy = new ArrayList<String>();
+        List<String> vehiclesDestroyed = new ArrayList<String>();
+        int resyncs=0;
 
-
-        public void FinishTurn(){
-            sanityChecks();
-        }
-        //Todo sanityCHecks
-        public void sanityChecks() {
-            numRecieved++;
-            if(numRecieved==playersAlive) {
-                numRecieved=0;
-                sanityPassed();
-            }
-        }
-
-
-        protected void addDestroy(Integer vid, boolean vote) {
-            if (destroy.containsKey(vid)) {
-                destroy.get(vid).add(vote);
-                if (destroy.get(vid).size() == playersAlive && !destroy.get(vid).contains(false)) {
-                    destroyVehicle(vid);
+        protected synchronized void addDestroy(String vid, WebSocket conn) {
+            if(!vehiclesDestroyed.contains(vid)){
+                if (destroyVotes.containsKey(vid)) {
+                    if(!destroyVotes.get(vid).contains(conn)) destroyVotes.get(vid).add(conn);
+                } else {
+                    destroyVotes.put(vid,new ArrayList<WebSocket>());
+                    destroyVotes.get(vid).add(conn);
                 }
-            } else {
-                destroy.put(vid,new ArrayList<Boolean>());
-                addDestroy(vid,vote);
             }
         }
-
 
         //TODO not implemented
         protected void addHash (WebSocket client, String hash){
@@ -292,11 +290,90 @@ public class GameHandler extends GameInstance implements TurnListener{
         }
 
 
-        private void destroyVehicle(Integer vid) {
+        private boolean destroyCheck(){
+            for(String vid:destroyVotes.keySet()){
+                if(destroyVotes.get(vid).size()==playersAlive) {
+                    vehiclesToDestroy.add(vid);
+                }else{
+                    if((float)destroyVotes.get(vid).size()>(float)playersAlive/2) {
+                        for (WebSocket player : players.keySet()) {
+                            if (!destroyVotes.containsKey(player)) {
+                                resyncs++;
+                                player.send("RESYNC:Not enig with the other players about killing " + vid);
+                            }
+                        }
+                    }else if(destroyVotes.get(vid).size()>playersAlive){
+                        for (WebSocket player : players.keySet()) {
+                            resyncs++;
+                            player.send("RESYNC:Too many destroy votes");
+                        }
+                    } else {
+                        for(WebSocket player:players.keySet()){
+                            if(destroyVotes.containsKey(player)){
+                                resyncs++;
+                                player.send("RESYNC:Not enig with the other players about killing "+vid);
+                            }
+                        }
+                    }
+                    return false;
+                }
+            }
+            return true;
         }
 
         private void sanityPassed(){
-            for(WebSocket conn:players.keySet()) conn.send("VALID_STATE");
+            for(WebSocket conn:players.keySet()) {
+                conn.send("VALID_STATE");
+            }
+        }
+        public void finishTurn(){
+            if(sanityChecks()){
+                destroyVehicles();
+                sanityPassed();
+            }
+
+        }
+
+        private void destroyVehicles() {
+            if(vehiclesToDestroy.size()>0) {
+                System.out.println("Destroying vehicles");
+                String gameOverString = "DEFEAT";
+                if (vehiclesToDestroy.size() == playersAlive) {
+                    gameOverString = "DRAW";
+                }
+                for (WebSocket player : players.keySet()) {
+                    if (vehiclesToDestroy.contains(players.get(player).get(2))){
+                        player.send("GAME_OVER:" + gameOverString);
+                        playersAlive--;
+                    }
+                }
+                vehiclesDestroyed.addAll(vehiclesToDestroy);
+                vehiclesToDestroy.clear();
+                if(playersAlive==1){
+                    for (WebSocket player : players.keySet()) {
+                        if (!vehiclesDestroyed.contains(players.get(player).get(2))) {
+                            player.send("GAME_OVER:VICTORY");
+                        }
+                    }
+                }
+            }
+        }
+
+        //Todo sanityCHecks
+        public boolean sanityChecks() {
+            numRecieved++;
+            if(numRecieved==playersAlive||numRecieved==resyncs) {
+                numRecieved=0;
+                resyncs=0;
+                if(destroyCheck()){
+                    destroyVotes.clear();
+                    return true;
+                } else {
+                    destroyVotes.clear();
+                    return false;
+                }
+            }
+            return false;
         }
     }
         //NOT TO BE IMPLEMENTED DUE TO TIME CONSTRAIN
