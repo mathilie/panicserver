@@ -5,13 +5,13 @@ import org.java_websocket.WebSocket;
 import java.util.*;
 
 public class GameHandler extends GameInstance implements TurnListener{
-    private TurnTimer timer;
+    //private TurnTimer timer;
     private long seed;
     private ArrayList<ArrayList<Card>> moves;
     private int turnStart;
     private String log;
     private SanityChecker sc;
-    private Thread timerThread;
+    //private Thread timerThread;
     private int playersAlive;
 
 
@@ -19,7 +19,7 @@ public class GameHandler extends GameInstance implements TurnListener{
         super(gameID, gameName, playerMap, idMap);
         moves = new ArrayList<>();
         log = "";
-        timer = new TurnTimer();
+        //timer = new TurnTimer();
         updateSeed();
         moves = new ArrayList<>();
         playersAlive = playerIDs.size();
@@ -56,7 +56,7 @@ public class GameHandler extends GameInstance implements TurnListener{
                 removeClient(conn);
                 break;
             case "GET_TIME_LEFT":
-                conn.send(String.valueOf(timer.getTimeLeft()));
+                //conn.send(String.valueOf(timer.getTimeLeft()));
                 break;
             case "RECONNECT":
                 reconect(Integer.parseInt(data[0]), conn);
@@ -132,7 +132,7 @@ public class GameHandler extends GameInstance implements TurnListener{
         numRecieved++;
         if (playersAlive == numRecieved) {
             numRecieved = 0;
-            timerThread.interrupt();
+            //timerThread.interrupt();
             String sendString = "GET_TURN:" + createCardString();
             for (WebSocket client : playerIDs.values()) {
                 client.send(sendString);
@@ -159,11 +159,11 @@ public class GameHandler extends GameInstance implements TurnListener{
     private void beginTurn(){
         turnStart++;
         if (turnStart == playersAlive) {
-            timer.setTimer();
-            timerThread = new Thread(timer);
-            timerThread.start();
+            //timer.setTimer();
+            //timerThread = new Thread(timer);
+            //timerThread.start();
             for(WebSocket client:players.keySet()){
-                client.send("BEGIN_TURN:"+timer.getTimeLeft());
+                client.send("BEGIN_TURN:"/*+timer.getTimeLeft()*/);
             }
         }
     }
@@ -218,8 +218,8 @@ public class GameHandler extends GameInstance implements TurnListener{
     //TODO make game out of lobby
     public void startGame(){
         for(WebSocket client:players.keySet()) client.send("START");
-        timer = new TurnTimer();
-        timer.setListener(this);
+        /*timer = new TurnTimer();
+        timer.setListener(this);*/
     }
 
     protected class Card implements Comparable<Card>{
