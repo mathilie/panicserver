@@ -53,7 +53,7 @@ public class LobbyHandler extends GameInstance {
         players.get(conn).set(1,VType);
         players.get(conn).set(2,VID);
         players.get(conn).set(3,color);
-        for(WebSocket player:players.keySet()) sendLobbyInfo(conn);
+        for(WebSocket player:players.keySet()) sendLobbyInfo(player);
         if(turnStart>=players.size()) startGame();
     }
 
