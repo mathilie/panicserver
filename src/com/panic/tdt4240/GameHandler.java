@@ -65,6 +65,9 @@ public class GameHandler extends GameInstance implements TurnListener{
             case "DESTROY":
                 destroy();
                 break;
+            case "GAME_OVER_INFO":
+                conn.send("GAME_OVER_INFO:VICTORY");
+                break;
             default:
         }
     }
@@ -120,9 +123,11 @@ public class GameHandler extends GameInstance implements TurnListener{
         numRecieved++;
         System.out.println("numRecieved: " + numRecieved + ", playersAlive = " + playersAlive);
         if(numRecieved==playersAlive){
-            timer.stopTimer();
-            timer.reset();
             for(WebSocket client:players.keySet()) client.send("TURN_END");
+            timerThread.interrupt();
+            timer.reset();
+            timer.setTimer();
+            timerThread = new Thread(timer);
             numRecieved=0;
         }
     }
@@ -134,8 +139,6 @@ public class GameHandler extends GameInstance implements TurnListener{
     private void sendCardString(){
         numRecieved++;
         if (playersAlive == numRecieved) {
-            //timerThread.interrupt();
-            //timerThread = null;
             numRecieved = 0;
             String sendString = "GET_TURN:" + createCardString();
             for (WebSocket client : playerIDs.values()) {
