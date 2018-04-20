@@ -19,12 +19,12 @@ public class TurnTimer implements Runnable {
 
     //TODO
     public float getTimeLeft(){
-        return (duration-globalClock)/1000;
+        return (duration-globalClock)/1000-5;
     }
 
     public boolean setTimer(long duration) {
         reset();
-        if(globalClock==0 && duration==0) {
+        if(globalClock==0 && this.duration==0) {
             this.duration = duration;
             pause = false;
             return true;
@@ -57,7 +57,7 @@ public class TurnTimer implements Runnable {
     public void run() {
         long oldTime;
         long currentTime = System.currentTimeMillis();
-        while (running) {
+        while (!Thread.interrupted()) {
             oldTime = currentTime;
             currentTime = System.currentTimeMillis();
             if (!pause) {
