@@ -8,7 +8,7 @@ public class TurnTimer implements Runnable {
 
     private long globalClock;
     private long duration;
-    private boolean pause = true;
+    private volatile boolean pause = true;
     private TurnListener listener;
     private boolean running = false;
 
@@ -67,7 +67,7 @@ public class TurnTimer implements Runnable {
                 globalClock += currentTime - oldTime;
                 if (globalClock > duration) {
                     listener.turnFinished();
-                    return;
+                    pause = true;
                 }
             }
         }
