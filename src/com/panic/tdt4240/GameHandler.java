@@ -27,6 +27,7 @@ public class GameHandler extends GameInstance implements TurnListener{
         timer = new TurnTimer();
         timer.setTimer();
         timer.setListener(this);
+        timer.startTimer();
         timerThread= new Thread(timer);
         timerThread.start();
         timedOutOfTime = false;
@@ -71,12 +72,16 @@ public class GameHandler extends GameInstance implements TurnListener{
                 sc.addDestroy(data[1],conn);
                 break;
             case "GAME_OVER_INFO":
-                conn.send("GAME_OVER_INFO:VICTORY");
+                sendGameOverInfo(conn);
                 break;
             case "RESYNC_FINISHED":
                 sc.finishTurn();
             default:
         }
+    }
+
+    private void sendGameOverInfo(WebSocket player) {
+        player.send("GAME_OVER_INFO:"+((String)players.get(player).get(4)));
     }
 
 
@@ -188,6 +193,7 @@ public class GameHandler extends GameInstance implements TurnListener{
      */
     @Override
     public void turnFinished() {
+        System.out.println("Force timeend");
         timedOutOfTime = true;
         for(WebSocket client:players.keySet()) client.send("TURN_END");
     }
@@ -228,13 +234,6 @@ public class GameHandler extends GameInstance implements TurnListener{
         seed = new Random().nextLong();
     }
 
-
-    //TODO make game out of lobby
-    public void startGame(){
-        for(WebSocket client:players.keySet()) client.send("START");
-        /*timer = new TurnTimer();
-        timer.setListener(this);*/
-    }
 
     protected class Card implements Comparable<Card>{
         private String cardString;
@@ -326,7 +325,7 @@ public class GameHandler extends GameInstance implements TurnListener{
                 conn.send("VALID_STATE");
             }
         }
-        public void finishTurn(){
+        public synchronized void finishTurn(){
             if(sanityChecks()){
                 destroyVehicles();
                 sanityPassed();
@@ -338,22 +337,25 @@ public class GameHandler extends GameInstance implements TurnListener{
             if(vehiclesToDestroy.size()>0) {
                 System.out.println("Destroying vehicles");
                 String gameOverString = "DEFEAT";
-                if (vehiclesToDestroy.size() == playersAlive) {
-                    gameOverString = "DRAW";
-                }
+                if (vehiclesToDestroy.size() == playersAlive) gameOverString = "DRAW";
                 for (WebSocket player : players.keySet()) {
                     if (vehiclesToDestroy.contains(players.get(player).get(2))){
+                        players.get(player).add(gameOverString);
                         player.send("GAME_OVER:" + gameOverString);
                         playersAlive--;
                     }
                 }
                 vehiclesDestroyed.addAll(vehiclesToDestroy);
                 vehiclesToDestroy.clear();
-                if(playersAlive==1){
+                if(playersAlive<=1){
                     for (WebSocket player : players.keySet()) {
                         if (!vehiclesDestroyed.contains(players.get(player).get(2))) {
+                            //If player is not destroyed send victory
                             player.send("GAME_OVER:VICTORY");
+                            players.get(player).add("VICTORY");
                         }
+                        //send GAME_OVER_ALL to everyone when one has won or it's a draw.
+                        player.send("GAME_OVER:ALL");
                     }
                 }
             }
