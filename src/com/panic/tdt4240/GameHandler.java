@@ -175,7 +175,7 @@ public class GameHandler extends GameInstance implements TurnListener{
             timer.startTimer();
             System.out.println(timer.getTimeLeft());
             for(WebSocket client:players.keySet()){
-                client.send("BEGIN_TURN:"+timer.getTimeLeft());
+                client.send("BEGIN_TURN:0.0"/*+timer.getTimeLeft()*/);
             }
             turnStart = 0;
         }
@@ -232,8 +232,8 @@ public class GameHandler extends GameInstance implements TurnListener{
     //TODO make game out of lobby
     public void startGame(){
         for(WebSocket client:players.keySet()) client.send("START");
-        timer = new TurnTimer();
-        timer.setListener(this);
+        /*timer = new TurnTimer();
+        timer.setListener(this);*/
     }
 
     protected class Card implements Comparable<Card>{

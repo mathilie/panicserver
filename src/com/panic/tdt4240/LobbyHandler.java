@@ -136,7 +136,6 @@ public class LobbyHandler extends GameInstance {
             }
             for(WebSocket conn:playerIDs.values()){
                 sendLobbyInfo(conn);
-                //conn.send("UNREADY");
             }
         }
         else{
