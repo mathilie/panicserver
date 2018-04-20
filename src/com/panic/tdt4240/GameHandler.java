@@ -159,12 +159,12 @@ public class GameHandler extends GameInstance implements TurnListener{
     private void beginTurn(){
         turnStart++;
         if (turnStart == playersAlive) {
-            for(WebSocket client:players.keySet()){
-                client.send("BEGIN_TURN:"+timer.getTimeLeft());
-            }
             timer.setTimer();
             timerThread = new Thread(timer);
             timerThread.start();
+            for(WebSocket client:players.keySet()){
+                client.send("BEGIN_TURN:"+timer.getTimeLeft());
+            }
         }
     }
 
