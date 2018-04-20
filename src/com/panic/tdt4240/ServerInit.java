@@ -18,7 +18,6 @@ public class ServerInit extends WebSocketServer {
     public static void main(String[] args) {
         String host = "0.0.0.0";
         int port = Integer.parseInt(args[0]);
-
         WebSocketServer server = new ServerInit(new InetSocketAddress(host, port));
         server.setConnectionLostTimeout(15);
         server.run();
@@ -44,6 +43,7 @@ public class ServerInit extends WebSocketServer {
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
         System.out.println("closed " + conn.getRemoteSocketAddress() + " with exit code " + code + " additional info: " + reason);
+        c.disconnected(conn);
         //TODO see if player was active in a game
     }
 
@@ -56,6 +56,7 @@ public class ServerInit extends WebSocketServer {
     @Override
     public void onError(WebSocket conn, Exception ex) {
         System.err.println("an error occured on connection " + conn.getRemoteSocketAddress()  + ":" + ex);
+        ex.printStackTrace();
     }
 
     @Override
