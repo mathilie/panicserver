@@ -64,6 +64,9 @@ public class GameHandler extends GameInstance implements TurnListener{
             case "DESTROY":
                 destroy();
                 break;
+            case "GAME_OVER_INFO": //TODO
+                conn.send("GAME_OVER:VICTORY");
+                break;
             default:
         }
     }
