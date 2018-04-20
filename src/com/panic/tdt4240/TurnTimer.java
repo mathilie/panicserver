@@ -64,7 +64,7 @@ public class TurnTimer implements Runnable {
                 globalClock += currentTime - oldTime;
                 if (globalClock > duration) {
                     listener.turnFinished();
-                    reset();
+                    return;
                 }
             }
         }

@@ -13,18 +13,22 @@ public class GameHandler extends GameInstance implements TurnListener{
     private SanityChecker sc;
     private Thread timerThread;
     private int playersAlive;
+    private boolean timedOutOfTime;
 
 
     public GameHandler(int gameID, String gameName, HashMap<WebSocket, List> playerMap, HashMap<Integer, WebSocket> idMap){
         super(gameID, gameName, playerMap, idMap);
         moves = new ArrayList<>();
         log = "";
-        timer = new TurnTimer();
-        timerThread= new Thread(timer);
         updateSeed();
         moves = new ArrayList<>();
         playersAlive = playerIDs.size();
         sc = new SanityChecker();
+        timer = new TurnTimer();
+        timer.setTimer();
+        timer.setListener(this);
+        timerThread= new Thread(timer);
+        timedOutOfTime = false;
     }
 
     /**
@@ -123,7 +127,9 @@ public class GameHandler extends GameInstance implements TurnListener{
         numRecieved++;
         System.out.println("numRecieved: " + numRecieved + ", playersAlive = " + playersAlive);
         if(numRecieved==playersAlive){
-            for(WebSocket client:players.keySet()) client.send("TURN_END");
+            if (!timedOutOfTime){
+                for (WebSocket client : players.keySet()) client.send("TURN_END");
+            }
             timerThread.interrupt();
             timer.reset();
             timer.setTimer();
@@ -166,6 +172,7 @@ public class GameHandler extends GameInstance implements TurnListener{
     private void beginTurn(){
         turnStart++;
         if (turnStart == playersAlive) {
+            timedOutOfTime = false;
             timerThread.start();
             System.out.println(timer.getTimeLeft());
             for(WebSocket client:players.keySet()){
@@ -182,6 +189,7 @@ public class GameHandler extends GameInstance implements TurnListener{
      */
     @Override
     public void turnFinished() {
+        timedOutOfTime = true;
         for(WebSocket client:players.keySet()) client.send("TURN_END");
     }
 
