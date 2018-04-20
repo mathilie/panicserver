@@ -8,9 +8,9 @@ public class TurnTimer implements Runnable {
 
     private long globalClock;
     private long duration;
-    private boolean pause;
+    private boolean pause = true;
     private TurnListener listener;
-    private boolean running = true;
+    private boolean running = false;
 
     public TurnTimer(){
         reset();
@@ -26,7 +26,6 @@ public class TurnTimer implements Runnable {
         reset();
         if(globalClock==0 && this.duration==0) {
             this.duration = duration;
-            pause = false;
             return true;
         }
         return false;
@@ -48,7 +47,11 @@ public class TurnTimer implements Runnable {
     }
 
     public void stopTimer(){
-        running = false;
+        pause = true;
+    }
+
+    public void startTimer(){
+        pause = false;
     }
 
     public void setListener(TurnListener tl){this.listener = tl; }
@@ -57,7 +60,7 @@ public class TurnTimer implements Runnable {
     public void run() {
         long oldTime;
         long currentTime = System.currentTimeMillis();
-        while (!Thread.interrupted()) {
+        while (true) {
             oldTime = currentTime;
             currentTime = System.currentTimeMillis();
             if (!pause) {
