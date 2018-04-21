@@ -149,8 +149,8 @@ public class GameController {
             boolean destroy = getGame(gameId).removeClient(client);
             System.out.println("Destroy is :"+destroy);
             if(destroy){
-                lobbies.remove(gameId);
-                games.remove(gameId);
+                if(lobbies.containsKey(gameId))lobbies.remove(gameId);
+                if(games.containsKey(gameId))games.remove(gameId);
             }
         }
     }

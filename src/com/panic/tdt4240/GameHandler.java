@@ -116,7 +116,6 @@ public class GameHandler extends GameInstance implements TurnListener{
             for(Card nextCard:roundOfCards) returnString=returnString+nextCard+"//";
             roundOfCards.clear();
         }
-        returnString=returnString;
         returnString=returnString+"TURNEND//";
         log = log + returnString;
         return returnString;
