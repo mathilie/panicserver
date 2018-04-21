@@ -295,7 +295,7 @@ public class GameHandler extends GameInstance implements TurnListener{
                 }else{
                     if((float)destroyVotes.get(vid).size()>(float)playersAlive/2) {
                         for (WebSocket player : players.keySet()) {
-                            if (!destroyVotes.containsKey(player)) {
+                            if (!destroyVotes.get(vid).contains(player)) {
                                 resyncs++;
                                 player.send("RESYNC:Not enig with the other players about killing " + vid);
                             }
@@ -307,7 +307,7 @@ public class GameHandler extends GameInstance implements TurnListener{
                         }
                     } else {
                         for(WebSocket player:players.keySet()){
-                            if(destroyVotes.containsKey(player)){
+                            if(destroyVotes.get(vid).contains(player)){
                                 resyncs++;
                                 player.send("RESYNC:Not enig with the other players about killing "+vid);
                             }
