@@ -300,11 +300,11 @@ public class GameHandler extends GameInstance implements TurnListener{
                                 player.send("RESYNC:Not enig with the other players about killing " + vid);
                             }
                         }
-                    }else if(destroyVotes.get(vid).size()>playersAlive){
+                    /*}else if(destroyVotes.get(vid).size()>playersAlive){
                         for (WebSocket player : players.keySet()) {
                             resyncs++;
                             player.send("RESYNC:Too many destroy votes");
-                        }
+                        }*/
                     } else {
                         for(WebSocket player:players.keySet()){
                             if(destroyVotes.get(vid).contains(player)){
