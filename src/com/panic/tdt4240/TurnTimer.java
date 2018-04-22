@@ -1,7 +1,5 @@
 package com.panic.tdt4240;
 
-import javax.xml.datatype.Duration;
-
 /**
  * Created by Mathias on 12.03.2018.
  */
@@ -10,32 +8,31 @@ public class TurnTimer implements Runnable {
 
     private long globalClock;
     private long duration;
-    private TurnTimer tt;
-    private boolean pause;
+    private volatile boolean pause = true;
     private TurnListener listener;
-    private boolean running = true;
+    private boolean running = false;
+
+    public TurnTimer(){
+        reset();
+    }
 
 
-    public TurnTimer getTimer() {
-        if (tt != null) {
-            return tt;
-        } else {
-            tt = new TurnTimer();
-            return tt;
-        }
+    //TODO
+    public float getTimeLeft(){
+        return (duration-globalClock)/1000-5;
     }
 
     public boolean setTimer(long duration) {
-        if(globalClock==0 && duration==0) {
+        reset();
+        if(globalClock==0 && this.duration==0) {
             this.duration = duration;
-            pause = false;
             return true;
         }
         return false;
     }
 
     public boolean setTimer() {
-        return setTimer(60000);
+        return setTimer(95000);
     }
 
     public boolean reset(){
@@ -50,7 +47,11 @@ public class TurnTimer implements Runnable {
     }
 
     public void stopTimer(){
-        running = false;
+        pause = true;
+    }
+
+    public void startTimer(){
+        pause = false;
     }
 
     public void setListener(TurnListener tl){this.listener = tl; }
@@ -59,16 +60,17 @@ public class TurnTimer implements Runnable {
     public void run() {
         long oldTime;
         long currentTime = System.currentTimeMillis();
-        while (running) {
+        while (true) {
             oldTime = currentTime;
             currentTime = System.currentTimeMillis();
             if (!pause) {
                 globalClock += currentTime - oldTime;
                 if (globalClock > duration) {
                     listener.turnFinished();
-                    reset();
+                    pause = true;
                 }
             }
         }
     }
+
 }
