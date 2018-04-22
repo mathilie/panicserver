@@ -1,8 +1,16 @@
+apply plugin: "java"
+apply plugin: "idea"
+
 
 apply plugin: 'application'
 apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
+
+
+//dependencies{
+//    testCompile group: 'com.sun.net.httpserver', name: 'http', version: '20070405'
+//}
 
 
 sourceSets {
@@ -67,3 +75,4 @@ dependencies {
 }
 
 task stage(dependsOn: jar)
+
